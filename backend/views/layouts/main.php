@@ -26,7 +26,7 @@ $this->registerJsFile($publishedRes[1] . '/control_sidebar.js', ['depends' => '\
     <title><?= Html::encode($this->title ? $this->title . ' - ' . Yii::$app->name : Yii::$app->name) ?></title>
     <?php $this->head() ?>
 </head>
-<body class="hold-transition sidebar-mini">
+<body class="hold-transition sidebar-mini layout-navbar-fixed">
 <?php $this->beginBody() ?>
 
 <div class="wrapper">

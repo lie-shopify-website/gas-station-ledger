@@ -39,6 +39,7 @@ return [
     // Navbar & auth
 
     '首页' => 'Home',
+    '导航' => 'Menu',
 
     '请先修改密码' => 'Please change your password first',
 

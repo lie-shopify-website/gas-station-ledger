@@ -151,6 +151,36 @@ a.desc:after {
         max-width: calc(100% - 1rem);
         margin: 0.5rem auto;
     }
+
+    /* Hide sidebar brand bar on mobile; layout-navbar-fixed would pin it at the top */
+    .layout-navbar-fixed .wrapper .main-sidebar .brand-link {
+        display: none !important;
+    }
+
+    /* Pin sidebar to viewport (not scrolled wrapper) so it sits flush under the fixed header */
+    body:not(.layout-fixed).layout-navbar-fixed .wrapper .main-sidebar,
+    body:not(.layout-fixed).layout-navbar-fixed .wrapper .main-sidebar::before {
+        position: fixed !important;
+        top: calc(3.5rem + 1px) !important;
+        left: 0;
+        bottom: 0;
+        height: auto !important;
+        min-height: 0 !important;
+        z-index: 1039;
+    }
+
+    .layout-navbar-fixed .wrapper .main-header {
+        z-index: 1040;
+    }
+
+    .layout-navbar-fixed .wrapper .main-sidebar .sidebar {
+        margin-top: 0 !important;
+        height: 100% !important;
+    }
+
+    .sidebar-open #sidebar-overlay {
+        top: calc(3.5rem + 1px);
+    }
 }
 
 .hint-block {
