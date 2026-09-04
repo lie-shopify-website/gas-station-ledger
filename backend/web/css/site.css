@@ -1,0 +1,193 @@
+main > .container {
+    padding: 70px 15px 20px;
+}
+
+.footer {
+    background-color: #f5f5f5;
+    font-size: .9em;
+    height: 60px;
+}
+
+.footer > .container {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.not-set {
+    color: #c55;
+    font-style: italic;
+}
+
+/* add sorting icons to gridview sort links */
+a.asc:after, a.desc:after {
+    content: '';
+    left: 3px;
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border: solid 5px transparent;
+    margin: 4px 4px 2px 4px;
+    background: transparent;
+}
+
+a.asc:after {
+    border-bottom: solid 7px #212529;
+    border-top-width: 0;
+}
+
+a.desc:after {
+    border-top: solid 7px #212529;
+    border-bottom-width: 0;
+}
+
+.grid-view th,
+.grid-view td:last-child {
+    white-space: nowrap;
+}
+
+.grid-view .filters input,
+.grid-view .filters select {
+    min-width: 50px;
+}
+
+/* Wide tables (7+ columns): scroll horizontally on small screens instead of squishing */
+.table-responsive-wide > .table,
+.table-responsive-wide .grid-view .table {
+    min-width: 960px;
+}
+
+.table-responsive-wide .table th {
+    white-space: nowrap;
+}
+
+/* Global layout spacing: row-gap 24px, column-gap 16px */
+.card-body .form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 24px 16px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.card-body .form-row > [class*="col"] {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.summary-panel .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.summary-panel .card-body .mb-3,
+.summary-panel .card-body .mb-4 {
+    margin-bottom: 0 !important;
+}
+
+.card-body .row.gsl-info-boxes,
+.card-body .row:has(.info-box) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px 16px;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+.card-body .row.gsl-info-boxes > [class*="col"],
+.card-body .row:has(.info-box) > [class*="col"] {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.card-body .row.gsl-info-boxes .info-box,
+.card-body .row:has(.info-box) .info-box {
+    margin-bottom: 0;
+}
+
+@media (min-width: 768px) {
+    .card-body .row.gsl-info-boxes,
+    .card-body .row:has(.info-box) {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+.summary-totals-panel .summary-totals-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.summary-totals-panel .summary-totals-item:last-child {
+    border-bottom: 0;
+}
+
+@media (min-width: 768px) {
+    .summary-totals-panel .summary-totals-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px 16px;
+    }
+
+    .summary-totals-panel .summary-totals-item:nth-last-child(-n+2) {
+        border-bottom: 0;
+    }
+}
+
+#gsl-detail-modal .modal-body {
+    padding: 1rem;
+}
+
+@media (max-width: 767px) {
+    #gsl-detail-modal .modal-dialog {
+        max-width: calc(100% - 1rem);
+        margin: 0.5rem auto;
+    }
+}
+
+.hint-block {
+    display: block;
+    margin-top: 5px;
+    color: #999;
+}
+
+.error-summary {
+    color: #a94442;
+    background: #fdf7f7;
+    border-left: 3px solid #eed3d7;
+    padding: 10px 20px;
+    margin: 0 0 15px 0;
+}
+
+/* align the logout "link" (button in form) of the navbar */
+.nav li > form > button.logout {
+    padding-top: 7px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+@media(max-width:767px) {
+    .nav li > form > button.logout {
+        display:block;
+        text-align: left;
+        width: 100%;
+        padding: 10px 0;
+    }
+}
+
+.nav > li > form > button.logout:focus,
+.nav > li > form > button.logout:hover {
+    text-decoration: none;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.nav > li > form > button.logout:focus {
+    outline: none;
+}
