@@ -36,7 +36,39 @@ $listPrice = $summary['list_price'];
         </div>
         <?php ActiveForm::end(); ?>
 
-        <div class="table-responsive table-responsive-wide mb-4">
+        <h5 class="mb-3"><?= Yii::t('app', '当日 Cash / MCM 汇总') ?></h5>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered table-striped table-sm mb-0">
+                <thead>
+                <tr>
+                    <th><?= Yii::t('app', '付款方式') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '票数') ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($paymentSummary['rows'] as $row): ?>
+                <tr>
+                    <td><?= Html::encode($row['payment_type']) ?></td>
+                    <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($row['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $row['count'] ?></td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                <tr class="font-weight-bold">
+                    <td><?= Yii::t('app', '合计') ?></td>
+                    <td class="text-right"><?= number_format($paymentSummary['totals']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($paymentSummary['totals']['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $paymentSummary['totals']['count'] ?></td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="table-responsive table-responsive-wide mb-0">
             <table class="table table-bordered table-striped table-sm">
                 <thead>
                 <tr>
@@ -100,38 +132,6 @@ $listPrice = $summary['list_price'];
                     <td class="text-right"><?= number_format($summary['totals']['mcm']['list_amount'], 2) ?></td>
                     <td class="text-right"><?= (int) $summary['totals']['mcm']['count'] ?></td>
                     <td></td>
-                </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <h5 class="mb-3"><?= Yii::t('app', '当日 Cash / MCM 汇总') ?></h5>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped table-sm mb-0">
-                <thead>
-                <tr>
-                    <th><?= Yii::t('app', '付款方式') ?></th>
-                    <th class="text-right"><?= Yii::t('app', '升数') ?></th>
-                    <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
-                    <th class="text-right"><?= Yii::t('app', '票数') ?></th>
-                </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($paymentSummary['rows'] as $row): ?>
-                <tr>
-                    <td><?= Html::encode($row['payment_type']) ?></td>
-                    <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
-                    <td class="text-right"><?= number_format($row['list_amount'], 2) ?></td>
-                    <td class="text-right"><?= (int) $row['count'] ?></td>
-                </tr>
-                <?php endforeach; ?>
-                </tbody>
-                <tfoot>
-                <tr class="font-weight-bold">
-                    <td><?= Yii::t('app', '合计') ?></td>
-                    <td class="text-right"><?= number_format($paymentSummary['totals']['liters'], 3) ?></td>
-                    <td class="text-right"><?= number_format($paymentSummary['totals']['list_amount'], 2) ?></td>
-                    <td class="text-right"><?= (int) $paymentSummary['totals']['count'] ?></td>
                 </tr>
                 </tfoot>
             </table>
