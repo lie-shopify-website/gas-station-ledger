@@ -163,6 +163,8 @@ return [
     '开始日期' => 'Start Date',
     '结束日期' => 'End Date',
     '下载 Excel' => 'Download Excel',
+    '下载精简版' => 'Download Compact',
+    '账本精简汇总' => 'Ledger Summary Compact',
     '报告导出/下载' => 'Report Export / Download',
     '日期范围无效。' => 'Invalid date range.',
     '账本汇总' => 'Ledger Summary',

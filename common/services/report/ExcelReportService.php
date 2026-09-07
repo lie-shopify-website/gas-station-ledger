@@ -28,6 +28,22 @@ class ExcelReportService
         });
     }
 
+    public function buildCompact(string $from, string $to): string
+    {
+        return $this->withEnglish(function () use ($from, $to) {
+            return $this->buildCompactInCurrentLanguage($from, $to);
+        });
+    }
+
+    public function filenameCompact(string $from, string $to): string
+    {
+        return $this->withEnglish(static function () use ($from, $to) {
+            return $from === $to
+                ? Yii::t('app', '账本精简汇总') . '-' . $from . '.xlsx'
+                : Yii::t('app', '账本精简汇总') . '-' . $from . '_' . $to . '.xlsx';
+        });
+    }
+
     private function withEnglish(callable $callback)
     {
         $previous = Yii::$app->language;
@@ -83,6 +99,37 @@ class ExcelReportService
 
         $detailSheet = $spreadsheet->createSheet();
         $this->writeCounterDetailSheet($detailSheet, $counter->getDetailsForRange($from, $to));
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+
+        return (string) ob_get_clean();
+    }
+
+    private function buildCompactInCurrentLanguage(string $from, string $to): string
+    {
+        $dashboard = new DashboardService();
+        $daily = new DailySummaryService();
+        $payment = new PaymentTypeSummaryService();
+        $counter = new CounterSummaryService();
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getProperties()
+            ->setCreator('Gas Station Ledger')
+            ->setTitle(Yii::t('app', '账本精简汇总'));
+
+        $this->writeDailySummarySheet(
+            $spreadsheet->getActiveSheet(),
+            $daily->getCompanyForRange($from, $to),
+            $payment->getSummaryForRange($from, $to),
+            $dashboard->getDailyTotalsForRange($from, $to)
+        );
+
+        $counterSheet = $spreadsheet->createSheet();
+        $this->writeCompactCounterSheet($counterSheet, $counter->getDailyWithPaymentForRange($from, $to));
 
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -499,6 +546,104 @@ class ExcelReportService
 
         $sheet->freezePane('A4');
         foreach (range('A', 'E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * @param array{date_from:string,date_to:string,rows:array,totals:array} $daily
+     */
+    private function writeCompactCounterSheet(Worksheet $sheet, array $daily): void
+    {
+        $sheet->setTitle(Yii::t('app', '柜台汇总'));
+        $range = $daily['date_from'] === $daily['date_to']
+            ? $daily['date_from']
+            : $daily['date_from'] . ' ~ ' . $daily['date_to'];
+
+        $sheet->setCellValue('A1', Yii::t('app', '柜台汇总'));
+        $sheet->setCellValue('B1', $range);
+        $this->styleTitle($sheet, 'A1:B1');
+
+        $sheet->mergeCells('A3:A4');
+        $sheet->mergeCells('B3:B4');
+        $sheet->mergeCells('C3:E3');
+        $sheet->mergeCells('F3:H3');
+        $sheet->mergeCells('I3:K3');
+        $sheet->setCellValue('A3', Yii::t('app', '工作日期'));
+        $sheet->setCellValue('B3', Yii::t('app', '柜台'));
+        $sheet->setCellValue('C3', 'Cash');
+        $sheet->setCellValue('F3', 'MCM');
+        $sheet->setCellValue('I3', Yii::t('app', '合计'));
+        $sheet->fromArray([
+            Yii::t('app', '升数'),
+            Yii::t('app', '挂牌金额'),
+            Yii::t('app', '票数'),
+            Yii::t('app', '升数'),
+            Yii::t('app', '挂牌金额'),
+            Yii::t('app', '票数'),
+            Yii::t('app', '升数'),
+            Yii::t('app', '挂牌金额'),
+            Yii::t('app', '票数'),
+        ], null, 'C4');
+        $this->styleHeader($sheet, 'A3:K4');
+        $sheet->getStyle('A3:K4')->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+
+        $rowNum = 5;
+        foreach ($daily['rows'] as $row) {
+            $sheet->fromArray([
+                $row['work_date'],
+                $row['counter_code'],
+                $row['cash']['liters'],
+                $row['cash']['list_amount'],
+                $row['cash']['count'],
+                $row['mcm']['liters'],
+                $row['mcm']['list_amount'],
+                $row['mcm']['count'],
+                $row['liters'],
+                $row['list_amount'],
+                $row['count'],
+            ], null, 'A' . $rowNum);
+            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('I' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('J' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('C' . $rowNum . ':K' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        if ($daily['rows']) {
+            $sheet->fromArray([
+                Yii::t('app', '合计'),
+                '',
+                $daily['totals']['cash']['liters'],
+                $daily['totals']['cash']['list_amount'],
+                $daily['totals']['cash']['count'],
+                $daily['totals']['mcm']['liters'],
+                $daily['totals']['mcm']['list_amount'],
+                $daily['totals']['mcm']['count'],
+                $daily['totals']['liters'],
+                $daily['totals']['list_amount'],
+                $daily['totals']['count'],
+            ], null, 'A' . $rowNum);
+            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('I' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('J' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':K' . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('C' . $rowNum . ':K' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A3:K' . $rowNum);
+        } else {
+            $sheet->setCellValue('A5', Yii::t('app', '无有效日数据'));
+        }
+
+        $sheet->freezePane('A5');
+        foreach (range('A', 'K') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }

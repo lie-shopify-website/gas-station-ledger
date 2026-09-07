@@ -179,6 +179,13 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
             <div class="col-auto">
                 <?= Html::submitButton(Yii::t('app', '下载 Excel'), ['class' => 'btn btn-outline-primary']) ?>
             </div>
+            <div class="col-auto">
+                <?= Html::submitButton(Yii::t('app', '下载精简版'), [
+                    'class' => 'btn btn-outline-secondary',
+                    'name' => 'variant',
+                    'value' => 'compact',
+                ]) ?>
+            </div>
         </div>
         <?php ActiveForm::end(); ?>
     </div>

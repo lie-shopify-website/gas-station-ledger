@@ -136,6 +136,99 @@ class CounterSummaryService
     }
 
     /**
+     * Per-day, per-counter Cash / MCM split.
+     *
+     * @return array{date_from:string,date_to:string,rows:array,totals:array}
+     */
+    public function getDailyWithPaymentForRange(string $from, string $to): array
+    {
+        $aggregates = GslFill::find()
+            ->alias('f')
+            ->innerJoin(['co' => GslCompany::tableName()], 'co.id = f.company_id')
+            ->leftJoin(['c' => GslCounter::tableName()], 'c.id = f.counter_id')
+            ->select([
+                'work_date' => 'f.work_date',
+                'counter_id' => 'f.counter_id',
+                'counter_code' => 'c.code',
+                'payment_type' => 'co.payment_type',
+                'liters' => 'ROUND(SUM(f.liters), 3)',
+                'list_amount' => 'ROUND(SUM(f.list_amount), 2)',
+                'cnt' => 'COUNT(*)',
+            ])
+            ->where(['between', 'f.work_date', $from, $to])
+            ->andWhere(['>', 'f.liters', 0])
+            ->andWhere(['not', ['f.counter_id' => null]])
+            ->groupBy(['f.work_date', 'f.counter_id', 'co.payment_type'])
+            ->orderBy([
+                'f.work_date' => SORT_ASC,
+                'c.sort_order' => SORT_ASC,
+            ])
+            ->asArray()
+            ->all();
+
+        $rows = [];
+        $totals = [
+            'count' => 0,
+            'liters' => 0.0,
+            'list_amount' => 0.0,
+            'cash' => $this->emptyPaymentStats(),
+            'mcm' => $this->emptyPaymentStats(),
+        ];
+
+        foreach ($aggregates as $agg) {
+            $key = $agg['work_date'] . ':' . $agg['counter_id'];
+            if (!isset($rows[$key])) {
+                $rows[$key] = [
+                    'work_date' => $agg['work_date'],
+                    'counter_id' => (int) $agg['counter_id'],
+                    'counter_code' => (string) ($agg['counter_code'] ?? ''),
+                    'count' => 0,
+                    'liters' => 0.0,
+                    'list_amount' => 0.0,
+                    'cash' => $this->emptyPaymentStats(),
+                    'mcm' => $this->emptyPaymentStats(),
+                ];
+            }
+
+            $stats = [
+                'liters' => (float) $agg['liters'],
+                'list_amount' => (float) $agg['list_amount'],
+                'count' => (int) $agg['cnt'],
+            ];
+            $type = strtoupper((string) $agg['payment_type']) === 'MCM' ? 'mcm' : 'cash';
+            $this->addPaymentStats($rows[$key][$type], $stats);
+            $rows[$key]['count'] += $stats['count'];
+            $rows[$key]['liters'] += $stats['liters'];
+            $rows[$key]['list_amount'] += $stats['list_amount'];
+            $this->addPaymentStats($totals[$type], $stats);
+            $totals['count'] += $stats['count'];
+            $totals['liters'] += $stats['liters'];
+            $totals['list_amount'] += $stats['list_amount'];
+        }
+
+        return [
+            'date_from' => $from,
+            'date_to' => $to,
+            'rows' => array_values($rows),
+            'totals' => [
+                'count' => $totals['count'],
+                'liters' => round($totals['liters'], 3),
+                'list_amount' => round($totals['list_amount'], 2),
+                'cash' => [
+                    'count' => $totals['cash']['count'],
+                    'liters' => round($totals['cash']['liters'], 3),
+                    'list_amount' => round($totals['cash']['list_amount'], 2),
+                ],
+                'mcm' => [
+                    'count' => $totals['mcm']['count'],
+                    'liters' => round($totals['mcm']['liters'], 3),
+                    'list_amount' => round($totals['mcm']['list_amount'], 2),
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return GslFill[]
      */
     public function getDetailsForRange(string $from, string $to): array

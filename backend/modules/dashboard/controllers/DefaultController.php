@@ -44,11 +44,13 @@ class DefaultController extends GslController
         }
 
         $service = new ExcelReportService();
-        $content = $service->build($from, $to);
+        $compact = Yii::$app->request->get('variant') === 'compact';
+        $content = $compact ? $service->buildCompact($from, $to) : $service->build($from, $to);
+        $name = $compact ? $service->filenameCompact($from, $to) : $service->filename($from, $to);
 
         return Yii::$app->response->sendContentAsFile(
             $content,
-            $service->filename($from, $to),
+            $name,
             [
                 'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'inline' => false,
