@@ -55,6 +55,18 @@ class ExcelReportService
         }
     }
 
+    /**
+     * Monthly sheet uses the calendar month of the selected end date.
+     *
+     * @return array{0:string,1:string}
+     */
+    private function monthBounds(string $to): array
+    {
+        $monthFrom = substr($to, 0, 7) . '-01';
+
+        return [$monthFrom, date('Y-m-t', strtotime($monthFrom))];
+    }
+
     private function buildInCurrentLanguage(string $from, string $to): string
     {
         $dashboard = new DashboardService();
@@ -115,6 +127,7 @@ class ExcelReportService
         $daily = new DailySummaryService();
         $payment = new PaymentTypeSummaryService();
         $counter = new CounterSummaryService();
+        [$monthFrom, $monthTo] = $this->monthBounds($to);
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getProperties()
@@ -123,6 +136,15 @@ class ExcelReportService
 
         $this->writeDailySummarySheet(
             $spreadsheet->getActiveSheet(),
+            $daily->getCompanyForRange($monthFrom, $monthTo),
+            $payment->getSummaryForRange($monthFrom, $monthTo),
+            $dashboard->getDailyTotalsForRange($monthFrom, $monthTo),
+            true
+        );
+
+        $dailySheet = $spreadsheet->createSheet();
+        $this->writeDailySummarySheet(
+            $dailySheet,
             $daily->getCompanyForRange($from, $to),
             $payment->getSummaryForRange($from, $to),
             $dashboard->getDailyTotalsForRange($from, $to)
@@ -272,14 +294,20 @@ class ExcelReportService
      * @param array{rows:array,totals:array} $payment
      * @param array{date_from:string,date_to:string,days:array,totals:array} $daily
      */
-    private function writeDailySummarySheet(Worksheet $sheet, array $company, array $payment, array $daily): void
-    {
-        $sheet->setTitle(Yii::t('app', '日报汇总'));
+    private function writeDailySummarySheet(
+        Worksheet $sheet,
+        array $company,
+        array $payment,
+        array $daily,
+        bool $monthly = false
+    ): void {
+        $title = Yii::t('app', $monthly ? '月汇总' : '日报汇总');
         $range = $company['date_from'] === $company['date_to']
             ? $company['date_from']
             : $company['date_from'] . ' ~ ' . $company['date_to'];
 
-        $sheet->setCellValue('A1', Yii::t('app', '日报汇总'));
+        $sheet->setTitle($title);
+        $sheet->setCellValue('A1', $title);
         $sheet->setCellValue('B1', $range);
         $this->styleTitle($sheet, 'A1:B1');
 
@@ -324,12 +352,12 @@ class ExcelReportService
         $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
 
         $rowNum += 2;
-        $sheet->setCellValue('A' . $rowNum, Yii::t('app', '每日汇总'));
+        $sheet->setCellValue('A' . $rowNum, Yii::t('app', $monthly ? '月汇总' : '每日汇总'));
         $this->styleTitle($sheet, 'A' . $rowNum);
         $rowNum++;
         $headerRow = $rowNum;
         $sheet->fromArray([
-            Yii::t('app', '工作日期'),
+            Yii::t('app', $monthly ? '期间' : '工作日期'),
             Yii::t('app', '票数'),
             Yii::t('app', '升数'),
             Yii::t('app', '应收'),
@@ -338,33 +366,19 @@ class ExcelReportService
         $this->styleHeader($sheet, 'A' . $rowNum . ':E' . $rowNum);
         $rowNum++;
 
-        if ($daily['days']) {
+        if ($monthly) {
+            if ($daily['days'] || (int) $daily['totals']['count'] > 0) {
+                $this->writeDailyTotalRow($sheet, $rowNum, $range, $daily['totals'], true);
+                $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
+            } else {
+                $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
+            }
+        } elseif ($daily['days']) {
             foreach ($daily['days'] as $row) {
-                $sheet->fromArray([
-                    $row['work_date'],
-                    $row['count'],
-                    $row['liters'],
-                    $row['amount_due'],
-                    $row['list_amount'],
-                ], null, 'A' . $rowNum);
-                $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-                $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-                $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-                $sheet->getStyle('B' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                $this->writeDailyTotalRow($sheet, $rowNum, $row['work_date'], $row);
                 $rowNum++;
             }
-            $sheet->fromArray([
-                Yii::t('app', '合计'),
-                $daily['totals']['count'],
-                $daily['totals']['liters'],
-                $daily['totals']['amount_due'],
-                $daily['totals']['list_amount'],
-            ], null, 'A' . $rowNum);
-            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->getFont()->setBold(true);
-            $sheet->getStyle('B' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->writeDailyTotalRow($sheet, $rowNum, Yii::t('app', '合计'), $daily['totals'], true);
             $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
         } else {
             $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
@@ -687,6 +701,32 @@ class ExcelReportService
         $this->applyBorder($sheet, 'A' . $startRow . ':D' . $rowNum);
 
         return $rowNum;
+    }
+
+    /**
+     * @param array{count:int,liters:float,amount_due:float,list_amount:float} $totals
+     */
+    private function writeDailyTotalRow(
+        Worksheet $sheet,
+        int $rowNum,
+        string $label,
+        array $totals,
+        bool $bold = false
+    ): void {
+        $sheet->fromArray([
+            $label,
+            $totals['count'],
+            $totals['liters'],
+            $totals['amount_due'],
+            $totals['list_amount'],
+        ], null, 'A' . $rowNum);
+        $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+        $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+        $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+        $sheet->getStyle('B' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        if ($bold) {
+            $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->getFont()->setBold(true);
+        }
     }
 
     /**

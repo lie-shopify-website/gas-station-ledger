@@ -169,6 +169,7 @@ return [
     '日期范围无效。' => 'Invalid date range.',
     '账本汇总' => 'Ledger Summary',
     '月汇总' => 'Monthly Summary',
+    '期间' => 'Period',
     '指标' => 'Metric',
     '数值' => 'Value',
     '全部合计' => 'Grand Total',
