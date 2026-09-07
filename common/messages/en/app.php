@@ -148,6 +148,13 @@ return [
     // Dashboard
 
     '月度 KPI — {month}' => 'Monthly KPI — {month}',
+    '柜台月汇总' => 'Monthly Counter Summary',
+    '柜台月汇总 — {month}' => 'Monthly Counter Summary — {month}',
+    '{label} — {month} 每日汇总' => '{label} — {month} Daily Summary',
+    '每日汇总' => 'Daily Summary',
+    '返回' => 'Back',
+    '无有效日数据' => 'No active-day data',
+    '无效的汇总指标。' => 'Invalid summary metric.',
 
 
 
@@ -472,6 +479,7 @@ return [
     '总升数' => 'Total Liters',
 
     '应收金额' => 'Amount Due',
+    '柜台金额' => 'Counter Amount',
 
     '总成本' => 'Total Cost',
 

@@ -42,6 +42,8 @@ class DefaultController extends GslController
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
+        $totals = $searchModel->totals($dataProvider->query);
+
 
 
         return $this->render('index', [
@@ -49,6 +51,8 @@ class DefaultController extends GslController
             'searchModel' => $searchModel,
 
             'dataProvider' => $dataProvider,
+
+            'totals' => $totals,
 
             'canWrite' => $this->canWrite('fills.write'),
 

@@ -25,6 +25,12 @@ $errorText = Json::encode(Yii::t('app', '加载失败，请重试。'));
 </div>
 <?php
 $this->registerJs(<<<JS
+$(document).on('keydown', '.gsl-detail-modal-trigger[role="button"]', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        $(this).trigger('click');
+    }
+});
 $(document).on('click', '.gsl-detail-modal-trigger', function () {
     var btn = $(this);
     var modal = $('#gsl-detail-modal');

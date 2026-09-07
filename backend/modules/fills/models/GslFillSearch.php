@@ -56,6 +56,8 @@ class GslFillSearch extends GslFill
 
             'amount_due' => Yii::t('app', '应收'),
 
+            'list_amount' => Yii::t('app', '挂牌金额'),
+
             'ticket_no' => Yii::t('app', '票号'),
 
             'note' => Yii::t('app', '备注'),
@@ -121,6 +123,64 @@ class GslFillSearch extends GslFill
 
 
         return $dataProvider;
+
+    }
+
+
+
+    /**
+
+     * @return array{liters:float,list_amount:float,amount_due:float,count:int}
+
+     */
+
+    public function totals(\yii\db\ActiveQuery $query): array
+
+    {
+
+        $aggQuery = clone $query;
+
+        $aggQuery->with = [];
+
+        $aggQuery->orderBy = [];
+
+        $aggQuery->limit = null;
+
+        $aggQuery->offset = null;
+
+
+
+        $row = $aggQuery
+
+            ->select([
+
+                'liters' => 'ROUND(SUM([[liters]]), 3)',
+
+                'list_amount' => 'ROUND(SUM([[list_amount]]), 2)',
+
+                'amount_due' => 'ROUND(SUM([[amount_due]]), 2)',
+
+                'cnt' => 'COUNT(*)',
+
+            ])
+
+            ->asArray()
+
+            ->one();
+
+
+
+        return [
+
+            'liters' => (float) ($row['liters'] ?? 0),
+
+            'list_amount' => (float) ($row['list_amount'] ?? 0),
+
+            'amount_due' => (float) ($row['amount_due'] ?? 0),
+
+            'count' => (int) ($row['cnt'] ?? 0),
+
+        ];
 
     }
 

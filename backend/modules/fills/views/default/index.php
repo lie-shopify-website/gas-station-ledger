@@ -8,6 +8,8 @@
 
 /** @var yii\data\ActiveDataProvider $dataProvider */
 
+/** @var array{liters:float,list_amount:float,amount_due:float,count:int} $totals */
+
 /** @var bool $canWrite */
 
 
@@ -59,11 +61,16 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 'tableOptions' => ['class' => 'table table-bordered table-striped table-sm'],
 
+                'showFooter' => true,
+
+                'footerRowOptions' => ['class' => 'font-weight-bold fill-summary-row'],
+
                 'columns' => [
 
                     [
                         'class' => SerialColumn::class,
                         'header' => Yii::t('app', '序号'),
+                        'footer' => Yii::t('app', '合计'),
                     ],
 
                     'work_date',
@@ -106,7 +113,11 @@ $this->params['breadcrumbs'][] = $this->title;
 
                         'contentOptions' => ['class' => 'text-right'],
 
+                        'footerOptions' => ['class' => 'text-right'],
+
                         'format' => ['decimal', 3],
+
+                        'footer' => Yii::$app->formatter->asDecimal($totals['liters'], 3),
 
                     ],
 
@@ -116,7 +127,29 @@ $this->params['breadcrumbs'][] = $this->title;
 
                         'contentOptions' => ['class' => 'text-right'],
 
+                        'footerOptions' => ['class' => 'text-right'],
+
                         'format' => ['decimal', 2],
+
+                        'footer' => Yii::$app->formatter->asDecimal($totals['amount_due'], 2),
+
+                    ],
+
+                    [
+
+                        'attribute' => 'list_amount',
+
+                        'label' => Yii::t('app', '挂牌金额'),
+
+                        'contentOptions' => ['class' => 'text-right'],
+
+                        'footerOptions' => ['class' => 'text-right'],
+
+                        'filter' => false,
+
+                        'format' => ['decimal', 2],
+
+                        'footer' => Yii::$app->formatter->asDecimal($totals['list_amount'], 2),
 
                     ],
 
@@ -165,6 +198,6 @@ $this->params['breadcrumbs'][] = $this->title;
 </div>
 
 <?php
-$this->registerCss('.fill-row-actions{display:flex;flex-direction:row;align-items:center;gap:16px;white-space:nowrap}.fill-row-actions a{flex-shrink:0}.grid-view .pagination{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding-left:0;margin:1rem 0 0}.grid-view .pagination>li{list-style:none}');
+$this->registerCss('.fill-row-actions{display:flex;flex-direction:row;align-items:center;gap:16px;white-space:nowrap}.fill-row-actions a{flex-shrink:0}.grid-view .pagination{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding-left:0;margin:1rem 0 0}.grid-view .pagination>li{list-style:none}.fill-summary-row td{background:#f4f6f9}');
 ?>
 
