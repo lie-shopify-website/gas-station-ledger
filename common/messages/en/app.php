@@ -15,8 +15,13 @@ return [
     '仪表盘' => 'Dashboard',
 
     '日报汇总' => 'Daily Summary',
+    '日报明细' => 'Daily Details',
+    '按公司' => 'By Company',
+    '按柜台' => 'By Counter',
+    '按日按柜台' => 'Daily by Counter',
 
     '柜台汇总' => 'Counter Summary',
+    '柜台明细' => 'Counter Details',
 
     '刷卡状态' => 'Swipe Status',
 
@@ -155,6 +160,16 @@ return [
     '返回' => 'Back',
     '无有效日数据' => 'No active-day data',
     '无效的汇总指标。' => 'Invalid summary metric.',
+    '开始日期' => 'Start Date',
+    '结束日期' => 'End Date',
+    '下载 Excel' => 'Download Excel',
+    '报告导出/下载' => 'Report Export / Download',
+    '日期范围无效。' => 'Invalid date range.',
+    '账本汇总' => 'Ledger Summary',
+    '月汇总' => 'Monthly Summary',
+    '指标' => 'Metric',
+    '数值' => 'Value',
+    '全部合计' => 'Grand Total',
 
 
 

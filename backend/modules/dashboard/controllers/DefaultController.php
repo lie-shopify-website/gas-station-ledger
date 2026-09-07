@@ -4,7 +4,9 @@ namespace backend\modules\dashboard\controllers;
 
 use backend\components\GslController;
 use common\models\GslSetting;
+use common\services\report\DailySummaryService;
 use common\services\report\DashboardService;
+use common\services\report\ExcelReportService;
 use Yii;
 use yii\web\BadRequestHttpException;
 
@@ -16,11 +18,48 @@ class DefaultController extends GslController
 
         $month = Yii::$app->request->get('month', GslSetting::getValue('ledger_month', date('Y-m')));
         $service = new DashboardService();
+        [$dateFrom, $dateTo] = $service->monthBounds($month);
 
         return $this->render('index', [
             'kpis' => $service->getKpis($month),
             'month' => $month,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'companyMonthly' => (new DailySummaryService())->getCompanyForRange($dateFrom, $dateTo),
+            'counterMonthly' => $service->getCounterMonthly($month),
         ]);
+    }
+
+    public function actionExport()
+    {
+        $this->checkPermission('dashboard.view');
+
+        $from = (string) Yii::$app->request->get('date_from', '');
+        $to = (string) Yii::$app->request->get('date_to', '');
+        $month = Yii::$app->request->get('month', GslSetting::getValue('ledger_month', date('Y-m')));
+
+        if (!$this->isValidDate($from) || !$this->isValidDate($to) || $from > $to) {
+            Yii::$app->session->setFlash('error', Yii::t('app', '日期范围无效。'));
+            return $this->redirect(['index', 'month' => $month]);
+        }
+
+        $service = new ExcelReportService();
+        $content = $service->build($from, $to);
+
+        return Yii::$app->response->sendContentAsFile(
+            $content,
+            $service->filename($from, $to),
+            [
+                'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'inline' => false,
+            ]
+        );
+    }
+
+    private function isValidDate(string $date): bool
+    {
+        $dt = \DateTime::createFromFormat('Y-m-d', $date);
+        return $dt !== false && $dt->format('Y-m-d') === $date;
     }
 
     public function actionCounters()

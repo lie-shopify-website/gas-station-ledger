@@ -123,20 +123,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     [
 
-                        'attribute' => 'amount_due',
-
-                        'contentOptions' => ['class' => 'text-right'],
-
-                        'footerOptions' => ['class' => 'text-right'],
-
-                        'format' => ['decimal', 2],
-
-                        'footer' => Yii::$app->formatter->asDecimal($totals['amount_due'], 2),
-
-                    ],
-
-                    [
-
                         'attribute' => 'list_amount',
 
                         'label' => Yii::t('app', '挂牌金额'),
@@ -150,6 +136,20 @@ $this->params['breadcrumbs'][] = $this->title;
                         'format' => ['decimal', 2],
 
                         'footer' => Yii::$app->formatter->asDecimal($totals['list_amount'], 2),
+
+                    ],
+
+                    [
+
+                        'attribute' => 'amount_due',
+
+                        'contentOptions' => ['class' => 'text-right'],
+
+                        'footerOptions' => ['class' => 'text-right'],
+
+                        'format' => ['decimal', 2],
+
+                        'footer' => Yii::$app->formatter->asDecimal($totals['amount_due'], 2),
 
                     ],
 

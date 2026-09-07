@@ -78,6 +78,84 @@ class CounterSummaryService
     }
 
     /**
+     * @return array{date_from:string,date_to:string,rows:array,totals:array}
+     */
+    public function getDailyForRange(string $from, string $to): array
+    {
+        $aggregates = GslFill::find()
+            ->alias('f')
+            ->leftJoin(['c' => GslCounter::tableName()], 'c.id = f.counter_id')
+            ->select([
+                'work_date' => 'f.work_date',
+                'counter_id' => 'f.counter_id',
+                'counter_code' => 'c.code',
+                'list_price' => 'MAX(f.list_price)',
+                'liters' => 'ROUND(SUM(f.liters), 3)',
+                'list_amount' => 'ROUND(SUM(f.list_amount), 2)',
+                'cnt' => 'COUNT(*)',
+            ])
+            ->where(['between', 'f.work_date', $from, $to])
+            ->andWhere(['>', 'f.liters', 0])
+            ->andWhere(['not', ['f.counter_id' => null]])
+            ->groupBy(['f.work_date', 'f.counter_id'])
+            ->orderBy([
+                'f.work_date' => SORT_ASC,
+                'c.sort_order' => SORT_ASC,
+            ])
+            ->asArray()
+            ->all();
+
+        $rows = [];
+        $totals = ['count' => 0, 'liters' => 0.0, 'list_amount' => 0.0];
+        foreach ($aggregates as $agg) {
+            $row = [
+                'work_date' => $agg['work_date'],
+                'counter_id' => (int) $agg['counter_id'],
+                'counter_code' => (string) ($agg['counter_code'] ?? ''),
+                'list_price' => $agg['list_price'] !== null ? (float) $agg['list_price'] : null,
+                'count' => (int) $agg['cnt'],
+                'liters' => (float) $agg['liters'],
+                'list_amount' => (float) $agg['list_amount'],
+            ];
+            $rows[] = $row;
+            $totals['count'] += $row['count'];
+            $totals['liters'] += $row['liters'];
+            $totals['list_amount'] += $row['list_amount'];
+        }
+
+        return [
+            'date_from' => $from,
+            'date_to' => $to,
+            'rows' => $rows,
+            'totals' => [
+                'count' => $totals['count'],
+                'liters' => round($totals['liters'], 3),
+                'list_amount' => round($totals['list_amount'], 2),
+            ],
+        ];
+    }
+
+    /**
+     * @return GslFill[]
+     */
+    public function getDetailsForRange(string $from, string $to): array
+    {
+        return GslFill::find()
+            ->alias('f')
+            ->with(['company', 'plate', 'counter'])
+            ->leftJoin(['c' => GslCounter::tableName()], 'c.id = f.counter_id')
+            ->where(['between', 'f.work_date', $from, $to])
+            ->andWhere(['>', 'f.liters', 0])
+            ->andWhere(['not', ['f.counter_id' => null]])
+            ->orderBy([
+                'f.work_date' => SORT_ASC,
+                'c.sort_order' => SORT_ASC,
+                'f.id' => SORT_ASC,
+            ])
+            ->all();
+    }
+
+    /**
      * @return array<int, array<string, array{liters:float,list_amount:float,count:int}>>
      */
     private function getPaymentStatsByCounter(string $workDate): array

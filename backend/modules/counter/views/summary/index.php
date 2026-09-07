@@ -3,6 +3,7 @@
 /** @var yii\web\View $this */
 /** @var array $summary */
 /** @var array $paymentSummary */
+/** @var array $companySummary */
 
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -68,7 +69,7 @@ $listPrice = $summary['list_price'];
             </table>
         </div>
 
-        <div class="table-responsive table-responsive-wide mb-0">
+        <div class="table-responsive table-responsive-wide mb-4">
             <table class="table table-bordered table-striped table-sm">
                 <thead>
                 <tr>
@@ -132,6 +133,44 @@ $listPrice = $summary['list_price'];
                     <td class="text-right"><?= number_format($summary['totals']['mcm']['list_amount'], 2) ?></td>
                     <td class="text-right"><?= (int) $summary['totals']['mcm']['count'] ?></td>
                     <td></td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <h5 class="mb-3"><?= Yii::t('app', '按公司') ?></h5>
+        <div class="table-responsive table-responsive-wide mb-0">
+            <table class="table table-bordered table-striped table-sm mb-0">
+                <thead>
+                <tr>
+                    <th><?= Yii::t('app', '公司') ?></th>
+                    <th><?= Yii::t('app', '付款方式') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '优惠价格') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '应收') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '笔数') ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($companySummary['companies'] as $row): ?>
+                    <?php if ((int) $row['count'] === 0) { continue; } ?>
+                    <tr>
+                        <td><?= Html::encode($row['company_name']) ?></td>
+                        <td><?= Html::encode($row['payment_type']) ?></td>
+                        <td class="text-right"><?= $row['discount_price'] !== null ? number_format($row['discount_price'], 2) : '—' ?></td>
+                        <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
+                        <td class="text-right"><?= number_format($row['amount_due'], 2) ?></td>
+                        <td class="text-right"><?= (int) $row['count'] ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                <tr class="font-weight-bold">
+                    <td colspan="2"><?= Yii::t('app', '合计') ?></td>
+                    <td></td>
+                    <td class="text-right"><?= number_format($companySummary['totals']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($companySummary['totals']['amount_due'], 2) ?></td>
+                    <td class="text-right"><?= (int) $companySummary['totals']['count'] ?></td>
                 </tr>
                 </tfoot>
             </table>

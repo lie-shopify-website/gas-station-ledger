@@ -8,6 +8,8 @@ namespace backend\modules\daily\controllers;
 
 use backend\components\GslController;
 
+use common\services\report\CounterSummaryService;
+
 use common\services\report\DailySummaryService;
 
 use Yii;
@@ -39,6 +41,8 @@ class SummaryController extends GslController
         return $this->render('index', [
 
             'summary' => $summary,
+
+            'counterSummary' => (new CounterSummaryService())->getSummary($workDate),
 
         ]);
 

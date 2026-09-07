@@ -5,6 +5,7 @@
 /** @var yii\web\View $this */
 
 /** @var array $summary */
+/** @var array $counterSummary */
 
 
 
@@ -156,7 +157,41 @@ $workDate = $summary['work_date'];
 
         </div>
 
-
+        <h5 class="mt-4 mb-3"><?= Yii::t('app', '按柜台') ?></h5>
+        <div class="table-responsive table-responsive-wide mb-4">
+            <table class="table table-bordered table-striped table-sm mb-0">
+                <thead>
+                <tr>
+                    <th><?= Yii::t('app', '柜台') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '挂牌价格') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '笔数') ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($counterSummary['counters'] as $row): ?>
+                    <?php if ((int) $row['count'] === 0) { continue; } ?>
+                    <tr>
+                        <td><?= Html::encode($row['counter_code']) ?></td>
+                        <td class="text-right"><?= $row['list_price'] !== null ? number_format($row['list_price'], 2) : '—' ?></td>
+                        <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
+                        <td class="text-right"><?= number_format($row['list_amount'], 2) ?></td>
+                        <td class="text-right"><?= (int) $row['count'] ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                <tr class="font-weight-bold">
+                    <td><?= Yii::t('app', '合计') ?></td>
+                    <td></td>
+                    <td class="text-right"><?= number_format($counterSummary['totals']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($counterSummary['totals']['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $counterSummary['totals']['count'] ?></td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
 
         <div class="summary-totals-panel p-3 border rounded bg-light">
 

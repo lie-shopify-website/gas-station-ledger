@@ -15,6 +15,17 @@ class PaymentTypeSummaryService
      */
     public function getSummary(string $workDate): array
     {
+        return $this->getSummaryForRange($workDate, $workDate);
+    }
+
+    /**
+     * @return array{
+     *     rows: array<int, array{payment_type:string,liters:float,list_amount:float,count:int}>,
+     *     totals: array{liters:float,list_amount:float,count:int}
+     * }
+     */
+    public function getSummaryForRange(string $from, string $to): array
+    {
         $aggregates = GslFill::find()
             ->alias('f')
             ->innerJoin(['c' => GslCompany::tableName()], 'c.id = f.company_id')
@@ -24,7 +35,7 @@ class PaymentTypeSummaryService
                 'list_amount' => 'ROUND(SUM(f.list_amount), 2)',
                 'cnt' => 'COUNT(*)',
             ])
-            ->where(['f.work_date' => $workDate])
+            ->where(['between', 'f.work_date', $from, $to])
             ->andWhere(['>', 'f.liters', 0])
             ->groupBy('c.payment_type')
             ->asArray()

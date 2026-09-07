@@ -4,6 +4,7 @@ namespace backend\modules\counter\controllers;
 
 use backend\components\GslController;
 use common\services\report\CounterSummaryService;
+use common\services\report\DailySummaryService;
 use common\services\report\PaymentTypeSummaryService;
 use Yii;
 
@@ -20,6 +21,7 @@ class SummaryController extends GslController
         return $this->render('index', [
             'summary' => $summary,
             'paymentSummary' => $paymentSummary,
+            'companySummary' => (new DailySummaryService())->getSummary($workDate),
         ]);
     }
 

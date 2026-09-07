@@ -58,6 +58,75 @@ class DailySummaryService
         ];
     }
 
+    /**
+     * @return array{date_from:string,date_to:string,companies:array,totals:array}
+     */
+    public function getCompanyForRange(string $from, string $to): array
+    {
+        $aggregates = GslFill::find()
+            ->select([
+                'company_id',
+                'liters' => 'ROUND(SUM(liters), 3)',
+                'amount_due' => 'ROUND(SUM(amount_due), 2)',
+                'cnt' => 'COUNT(*)',
+            ])
+            ->where(['between', 'work_date', $from, $to])
+            ->andWhere(['>', 'liters', 0])
+            ->groupBy('company_id')
+            ->indexBy('company_id')
+            ->asArray()
+            ->all();
+
+        $rows = [];
+        $totals = ['count' => 0, 'liters' => 0.0, 'amount_due' => 0.0];
+        foreach (GslCompany::find()->where(['is_active' => 1])->orderBy('sort_order')->all() as $company) {
+            $agg = $aggregates[$company->id] ?? null;
+            $count = (int) ($agg['cnt'] ?? 0);
+            if ($count === 0) {
+                continue;
+            }
+            $row = [
+                'company_id' => (int) $company->id,
+                'company_name' => $company->name,
+                'payment_type' => $company->payment_type,
+                'count' => $count,
+                'liters' => (float) ($agg['liters'] ?? 0),
+                'amount_due' => (float) ($agg['amount_due'] ?? 0),
+            ];
+            $rows[] = $row;
+            $totals['count'] += $row['count'];
+            $totals['liters'] += $row['liters'];
+            $totals['amount_due'] += $row['amount_due'];
+        }
+
+        return [
+            'date_from' => $from,
+            'date_to' => $to,
+            'companies' => $rows,
+            'totals' => [
+                'count' => $totals['count'],
+                'liters' => round($totals['liters'], 3),
+                'amount_due' => round($totals['amount_due'], 2),
+            ],
+        ];
+    }
+
+    /**
+     * @return GslFill[]
+     */
+    public function getFillsForRange(string $from, string $to): array
+    {
+        return GslFill::find()
+            ->with(['company', 'plate', 'counter'])
+            ->where(['between', 'work_date', $from, $to])
+            ->andWhere(['>', 'liters', 0])
+            ->orderBy([
+                'work_date' => SORT_ASC,
+                'id' => SORT_ASC,
+            ])
+            ->all();
+    }
+
     public function getCompanyDetails(string $workDate, int $companyId): array
     {
         return GslFill::find()

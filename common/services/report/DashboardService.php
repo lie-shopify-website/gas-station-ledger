@@ -26,11 +26,22 @@ class DashboardService
         $month = $month ?: GslSetting::getValue('ledger_month', date('Y-m'));
         [$from, $to] = $this->monthRange($month);
 
+        return array_merge($this->getKpisForRange($from, $to), [
+            'month' => $month,
+        ]);
+    }
+
+    /**
+     * @return array{date_from:string,date_to:string,fill_count:int,total_liters:float,amount_due:float,list_amount:float,total_cost:float,swipe_liters:float}
+     */
+    public function getKpisForRange(string $from, string $to): array
+    {
         $fills = GslFill::find()->where(['between', 'work_date', $from, $to]);
         $swipes = GslSwipe::find()->where(['between', 'work_date', $from, $to]);
 
         return [
-            'month' => $month,
+            'date_from' => $from,
+            'date_to' => $to,
             'fill_count' => (int) (clone $fills)->andWhere(['>', 'liters', 0])->count(),
             'total_liters' => round((float) (clone $fills)->sum('liters'), 3),
             'amount_due' => round((float) (clone $fills)->sum('amount_due'), 2),
@@ -47,6 +58,16 @@ class DashboardService
     {
         [$from, $to] = $this->monthRange($month);
 
+        return array_merge($this->getCounterForRange($from, $to), [
+            'month' => $month,
+        ]);
+    }
+
+    /**
+     * @return array{date_from:string,date_to:string,counters:array,totals:array}
+     */
+    public function getCounterForRange(string $from, string $to): array
+    {
         $aggregates = GslFill::find()
             ->select([
                 'counter_id',
@@ -80,11 +101,82 @@ class DashboardService
         }
 
         return [
-            'month' => $month,
+            'date_from' => $from,
+            'date_to' => $to,
             'counters' => $rows,
             'totals' => [
                 'count' => $totals['count'],
                 'liters' => round($totals['liters'], 3),
+                'list_amount' => round($totals['list_amount'], 2),
+            ],
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getValidFillDates(string $from, string $to): array
+    {
+        return $this->validFillQuery($from, $to)
+            ->select('work_date')
+            ->distinct()
+            ->orderBy(['work_date' => SORT_ASC])
+            ->column();
+    }
+
+    /**
+     * @return string[]
+     */
+    public function monthBounds(string $month): array
+    {
+        return $this->monthRange($month);
+    }
+
+    /**
+     * Station-wide daily totals, not split by counter.
+     *
+     * @return array{date_from:string,date_to:string,days:array,totals:array}
+     */
+    public function getDailyTotalsForRange(string $from, string $to): array
+    {
+        $days = $this->validFillQuery($from, $to)
+            ->select([
+                'work_date',
+                'cnt' => 'COUNT(*)',
+                'liters' => 'ROUND(SUM(liters), 3)',
+                'amount_due' => 'ROUND(SUM(amount_due), 2)',
+                'list_amount' => 'ROUND(SUM(list_amount), 2)',
+            ])
+            ->groupBy('work_date')
+            ->orderBy(['work_date' => SORT_ASC])
+            ->asArray()
+            ->all();
+
+        $rows = [];
+        $totals = ['count' => 0, 'liters' => 0.0, 'amount_due' => 0.0, 'list_amount' => 0.0];
+        foreach ($days as $day) {
+            $row = [
+                'work_date' => $day['work_date'],
+                'count' => (int) $day['cnt'],
+                'liters' => (float) $day['liters'],
+                'amount_due' => (float) $day['amount_due'],
+                'list_amount' => (float) $day['list_amount'],
+            ];
+            $rows[] = $row;
+            $totals['count'] += $row['count'];
+            $totals['liters'] += $row['liters'];
+            $totals['amount_due'] += $row['amount_due'];
+            $totals['list_amount'] += $row['list_amount'];
+        }
+
+        return [
+            'date_from' => $from,
+            'date_to' => $to,
+            'days' => $rows,
+            'totals' => [
+                'count' => $totals['count'],
+                'liters' => round($totals['liters'], 3),
+                'amount_due' => round($totals['amount_due'], 2),
                 'list_amount' => round($totals['list_amount'], 2),
             ],
         ];
@@ -130,44 +222,15 @@ class DashboardService
         $query = $this->validFillQuery($from, $to);
 
         if ($metric === 'counter') {
-            $days = (clone $query)
-                ->select([
-                    'work_date',
-                    'cnt' => 'COUNT(*)',
-                    'liters' => 'ROUND(SUM(liters), 3)',
-                    'list_amount' => 'ROUND(SUM(list_amount), 2)',
-                ])
-                ->groupBy('work_date')
-                ->orderBy(['work_date' => SORT_ASC])
-                ->asArray()
-                ->all();
-
-            $rows = [];
-            $totals = ['count' => 0, 'liters' => 0.0, 'list_amount' => 0.0];
-            foreach ($days as $day) {
-                $row = [
-                    'work_date' => $day['work_date'],
-                    'count' => (int) $day['cnt'],
-                    'liters' => (float) $day['liters'],
-                    'list_amount' => (float) $day['list_amount'],
-                ];
-                $rows[] = $row;
-                $totals['count'] += $row['count'];
-                $totals['liters'] += $row['liters'];
-                $totals['list_amount'] += $row['list_amount'];
-            }
+            $daily = $this->getDailyTotalsForRange($from, $to);
 
             return [
                 'month' => $month,
                 'metric' => $metric,
                 'label' => Yii::t('app', '柜台月汇总'),
                 'decimals' => 2,
-                'days' => $rows,
-                'totals' => [
-                    'count' => $totals['count'],
-                    'liters' => round($totals['liters'], 3),
-                    'list_amount' => round($totals['list_amount'], 2),
-                ],
+                'days' => $daily['days'],
+                'totals' => $daily['totals'],
             ];
         }
 

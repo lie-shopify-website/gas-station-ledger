@@ -3,6 +3,10 @@
 /** @var yii\web\View $this */
 /** @var array $kpis */
 /** @var string $month */
+/** @var string $dateFrom */
+/** @var string $dateTo */
+/** @var array $companyMonthly */
+/** @var array $counterMonthly */
 
 use yii\helpers\Html;
 use yii\helpers\Url;
@@ -71,13 +75,13 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
                 <?= $kpiBox('bg-success', 'fas fa-tint', Yii::t('app', '总升数'), number_format($kpis['total_liters'], 3), ['metric' => 'total_liters']) ?>
             </div>
             <div class="col-md-2 col-sm-4 col-6">
-                <?= $kpiBox('bg-warning', 'fas fa-yen-sign', Yii::t('app', '应收金额'), number_format($kpis['amount_due'], 2), ['metric' => 'amount_due']) ?>
-            </div>
-            <div class="col-md-2 col-sm-4 col-6">
                 <?= $kpiBox('bg-primary', 'fas fa-cash-register', Yii::t('app', '柜台金额'), number_format($kpis['list_amount'], 2), [
                     'url' => Url::to(['/dashboard/default/counters', 'month' => $month]),
                     'title' => Yii::t('app', '柜台月汇总 — {month}', ['month' => $month]),
                 ]) ?>
+            </div>
+            <div class="col-md-2 col-sm-4 col-6">
+                <?= $kpiBox('bg-warning', 'fas fa-yen-sign', Yii::t('app', '应收金额'), number_format($kpis['amount_due'], 2), ['metric' => 'amount_due']) ?>
             </div>
             <div class="col-md-2 col-sm-4 col-6">
                 <?= $kpiBox('bg-danger', 'fas fa-chart-line', Yii::t('app', '总成本'), number_format($kpis['total_cost'], 2), ['metric' => 'total_cost']) ?>
@@ -86,6 +90,97 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
                 <?= $kpiBox('bg-secondary', 'fas fa-credit-card', Yii::t('app', '刷卡升数'), number_format($kpis['swipe_liters'], 3), ['metric' => 'swipe_liters']) ?>
             </div>
         </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h5 class="mb-3"><?= Yii::t('app', '按公司') ?></h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-sm mb-0">
+                        <thead>
+                        <tr>
+                            <th><?= Yii::t('app', '公司') ?></th>
+                            <th><?= Yii::t('app', '付款方式') ?></th>
+                            <th class="text-right"><?= Yii::t('app', '笔数') ?></th>
+                            <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                            <th class="text-right"><?= Yii::t('app', '应收') ?></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($companyMonthly['companies'] as $row): ?>
+                            <tr>
+                                <td><?= Html::encode($row['company_name']) ?></td>
+                                <td><?= Html::encode($row['payment_type']) ?></td>
+                                <td class="text-right"><?= (int) $row['count'] ?></td>
+                                <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
+                                <td class="text-right"><?= number_format($row['amount_due'], 2) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                        <tr class="font-weight-bold">
+                            <td colspan="2"><?= Yii::t('app', '合计') ?></td>
+                            <td class="text-right"><?= (int) $companyMonthly['totals']['count'] ?></td>
+                            <td class="text-right"><?= number_format($companyMonthly['totals']['liters'], 3) ?></td>
+                            <td class="text-right"><?= number_format($companyMonthly['totals']['amount_due'], 2) ?></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h5 class="mb-3"><?= Yii::t('app', '按柜台') ?></h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-sm mb-0">
+                        <thead>
+                        <tr>
+                            <th><?= Yii::t('app', '柜台') ?></th>
+                            <th class="text-right"><?= Yii::t('app', '笔数') ?></th>
+                            <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                            <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($counterMonthly['counters'] as $row): ?>
+                            <?php if ((int) $row['count'] === 0) { continue; } ?>
+                            <tr>
+                                <td><?= Html::encode($row['counter_code']) ?></td>
+                                <td class="text-right"><?= (int) $row['count'] ?></td>
+                                <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
+                                <td class="text-right"><?= number_format($row['list_amount'], 2) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                        <tr class="font-weight-bold">
+                            <td><?= Yii::t('app', '合计') ?></td>
+                            <td class="text-right"><?= (int) $counterMonthly['totals']['count'] ?></td>
+                            <td class="text-right"><?= number_format($counterMonthly['totals']['liters'], 3) ?></td>
+                            <td class="text-right"><?= number_format($counterMonthly['totals']['list_amount'], 2) ?></td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <hr class="mt-4 mb-3">
+        <h5 class="mb-3"><?= Yii::t('app', '报告导出/下载') ?></h5>
+        <?php $exportForm = ActiveForm::begin(['method' => 'get', 'action' => ['/dashboard/default/export']]); ?>
+        <?= Html::hiddenInput('month', $month) ?>
+        <div class="form-row align-items-end">
+            <div class="col-auto">
+                <label class="control-label"><?= Yii::t('app', '开始日期') ?></label>
+                <input type="date" name="date_from" class="form-control" value="<?= Html::encode($dateFrom) ?>">
+            </div>
+            <div class="col-auto">
+                <label class="control-label"><?= Yii::t('app', '结束日期') ?></label>
+                <input type="date" name="date_to" class="form-control" value="<?= Html::encode($dateTo) ?>">
+            </div>
+            <div class="col-auto">
+                <?= Html::submitButton(Yii::t('app', '下载 Excel'), ['class' => 'btn btn-outline-primary']) ?>
+            </div>
+        </div>
+        <?php ActiveForm::end(); ?>
     </div>
 </div>
 <?php
