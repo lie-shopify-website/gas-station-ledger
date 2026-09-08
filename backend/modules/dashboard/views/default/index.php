@@ -97,7 +97,10 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
 
         <div class="row mt-4">
             <div class="col-lg-6 mb-4 mb-lg-0">
-                <h5 class="mb-3"><?= Yii::t('app', '按公司') ?></h5>
+                <h5 class="mb-3 gsl-collapse-toggle collapsed" data-toggle="collapse" data-target="#gsl-company-panel" aria-expanded="false" role="button">
+                    <i class="fas fa-chevron-right mr-1"></i><?= Yii::t('app', '按公司') ?>
+                </h5>
+                <div id="gsl-company-panel" class="collapse">
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-sm mb-0">
                         <thead>
@@ -130,9 +133,13 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
                         </tfoot>
                     </table>
                 </div>
+                </div>
             </div>
             <div class="col-lg-6">
-                <h5 class="mb-3"><?= Yii::t('app', '按柜台') ?></h5>
+                <h5 class="mb-3 gsl-collapse-toggle collapsed" data-toggle="collapse" data-target="#gsl-counter-panel" aria-expanded="false" role="button">
+                    <i class="fas fa-chevron-right mr-1"></i><?= Yii::t('app', '按柜台') ?>
+                </h5>
+                <div id="gsl-counter-panel" class="collapse">
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped table-sm mb-0">
                         <thead>
@@ -164,11 +171,16 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
                         </tfoot>
                     </table>
                 </div>
+                </div>
             </div>
         </div>
 
-        <h5 class="mb-3 mt-4"><?= Yii::t('app', '按日按公司') ?></h5>
-        <?= $this->render('_daily_company', ['dailyCompany' => $dailyCompany]) ?>
+        <h5 class="mb-3 mt-4 gsl-collapse-toggle collapsed" data-toggle="collapse" data-target="#gsl-daily-company-panel" aria-expanded="false" role="button">
+            <i class="fas fa-chevron-right mr-1"></i><?= Yii::t('app', '按日按公司') ?>
+        </h5>
+        <div id="gsl-daily-company-panel" class="collapse">
+            <?= $this->render('_daily_company', ['dailyCompany' => $dailyCompany]) ?>
+        </div>
 
         <hr class="mt-4 mb-3">
         <h5 class="mb-3"><?= Yii::t('app', '报告导出/下载') ?></h5>
@@ -198,5 +210,5 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
     </div>
 </div>
 <?php
-$this->registerCss('.kpi-clickable{cursor:pointer}.kpi-clickable:hover{box-shadow:0 .25rem .75rem rgba(0,0,0,.18);transform:translateY(-1px)}.kpi-clickable:focus{outline:2px solid rgba(255,255,255,.7);outline-offset:2px}');
+$this->registerCss('.kpi-clickable{cursor:pointer}.kpi-clickable:hover{box-shadow:0 .25rem .75rem rgba(0,0,0,.18);transform:translateY(-1px)}.kpi-clickable:focus{outline:2px solid rgba(255,255,255,.7);outline-offset:2px}.gsl-collapse-toggle{cursor:pointer;user-select:none}.gsl-collapse-toggle .fa-chevron-right{transition:transform .15s ease}.gsl-collapse-toggle:not(.collapsed) .fa-chevron-right{transform:rotate(90deg)}');
 ?>
