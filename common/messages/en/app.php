@@ -285,6 +285,7 @@ return [
     '选择公司' => 'Select company',
 
     '选择车牌' => 'Select plate',
+    '无匹配' => 'No match',
 
     '车牌与所选公司不匹配。' => 'The selected plate does not belong to the chosen company.',
 

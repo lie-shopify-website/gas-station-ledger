@@ -221,3 +221,51 @@ a.desc:after {
 .nav > li > form > button.logout:focus {
     outline: none;
 }
+
+.gsl-ss {
+    position: relative;
+}
+
+.gsl-ss-native {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+.gsl-ss-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 2px);
+    z-index: 30;
+    max-height: 240px;
+    overflow: auto;
+    background: #fff;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.08);
+}
+
+.gsl-ss-item,
+.gsl-ss-empty {
+    padding: 0.375rem 0.75rem;
+}
+
+.gsl-ss-item {
+    cursor: pointer;
+}
+
+.gsl-ss-item:hover,
+.gsl-ss-item.active {
+    background: #007bff;
+    color: #fff;
+}
+
+.gsl-ss-empty {
+    color: #6c757d;
+}
