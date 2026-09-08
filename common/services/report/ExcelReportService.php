@@ -78,15 +78,16 @@ class ExcelReportService
             ->setCreator('Gas Station Ledger')
             ->setTitle(Yii::t('app', '账本汇总'));
 
+        $dailyTotals = $dashboard->getDailyTotalsForRange($from, $to);
         $this->writeMonthSheet(
             $spreadsheet->getActiveSheet(),
             $dashboard->getKpisForRange($from, $to),
             $daily->getCompanyForRange($from, $to),
-            $dashboard->getCounterForRange($from, $to)
+            $dashboard->getCounterForRange($from, $to),
+            $dailyTotals
         );
 
         $paymentSummary = $payment->getSummaryForRange($from, $to);
-        $dailyTotals = $dashboard->getDailyTotalsForRange($from, $to);
 
         $dailySummarySheet = $spreadsheet->createSheet();
         $this->writeDailySummarySheet(
@@ -166,8 +167,9 @@ class ExcelReportService
      * @param array{date_from:string,date_to:string,fill_count:int,total_liters:float,amount_due:float,list_amount:float,total_cost:float,swipe_liters:float} $kpis
      * @param array{date_from:string,date_to:string,companies:array,totals:array} $company
      * @param array{date_from:string,date_to:string,counters:array,totals:array} $counter
+     * @param array{date_from:string,date_to:string,days:array,totals:array} $daily
      */
-    private function writeMonthSheet(Worksheet $sheet, array $kpis, array $company, array $counter): void
+    private function writeMonthSheet(Worksheet $sheet, array $kpis, array $company, array $counter, array $daily): void
     {
         $sheet->setTitle(Yii::t('app', '月汇总'));
         $range = $kpis['date_from'] === $kpis['date_to']
@@ -283,6 +285,9 @@ class ExcelReportService
         $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $this->applyBorder($sheet, 'A' . $headerRow . ':D' . $rowNum);
 
+        $rowNum += 2;
+        $this->writeDailyTotalsBlock($sheet, $daily, $rowNum);
+
         $sheet->freezePane('A4');
         foreach (range('A', 'E') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
@@ -352,37 +357,7 @@ class ExcelReportService
         $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
 
         $rowNum += 2;
-        $sheet->setCellValue('A' . $rowNum, Yii::t('app', $monthly ? '月汇总' : '每日汇总'));
-        $this->styleTitle($sheet, 'A' . $rowNum);
-        $rowNum++;
-        $headerRow = $rowNum;
-        $sheet->fromArray([
-            Yii::t('app', $monthly ? '期间' : '工作日期'),
-            Yii::t('app', '票数'),
-            Yii::t('app', '升数'),
-            Yii::t('app', '应收'),
-            Yii::t('app', '挂牌金额'),
-        ], null, 'A' . $rowNum);
-        $this->styleHeader($sheet, 'A' . $rowNum . ':E' . $rowNum);
-        $rowNum++;
-
-        if ($monthly) {
-            if ($daily['days'] || (int) $daily['totals']['count'] > 0) {
-                $this->writeDailyTotalRow($sheet, $rowNum, $range, $daily['totals'], true);
-                $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
-            } else {
-                $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
-            }
-        } elseif ($daily['days']) {
-            foreach ($daily['days'] as $row) {
-                $this->writeDailyTotalRow($sheet, $rowNum, $row['work_date'], $row);
-                $rowNum++;
-            }
-            $this->writeDailyTotalRow($sheet, $rowNum, Yii::t('app', '合计'), $daily['totals'], true);
-            $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
-        } else {
-            $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
-        }
+        $this->writeDailyTotalsBlock($sheet, $daily, $rowNum);
 
         $sheet->freezePane('A4');
         foreach (range('A', 'E') as $col) {
@@ -699,6 +674,39 @@ class ExcelReportService
         $sheet->getStyle('A' . $rowNum . ':D' . $rowNum)->getFont()->setBold(true);
         $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $this->applyBorder($sheet, 'A' . $startRow . ':D' . $rowNum);
+
+        return $rowNum;
+    }
+
+    /**
+     * @param array{date_from:string,date_to:string,days:array,totals:array} $daily
+     */
+    private function writeDailyTotalsBlock(Worksheet $sheet, array $daily, int $rowNum): int
+    {
+        $sheet->setCellValue('A' . $rowNum, Yii::t('app', '每日汇总'));
+        $this->styleTitle($sheet, 'A' . $rowNum);
+        $rowNum++;
+        $headerRow = $rowNum;
+        $sheet->fromArray([
+            Yii::t('app', '工作日期'),
+            Yii::t('app', '票数'),
+            Yii::t('app', '升数'),
+            Yii::t('app', '应收'),
+            Yii::t('app', '挂牌金额'),
+        ], null, 'A' . $rowNum);
+        $this->styleHeader($sheet, 'A' . $rowNum . ':E' . $rowNum);
+        $rowNum++;
+
+        if ($daily['days']) {
+            foreach ($daily['days'] as $row) {
+                $this->writeDailyTotalRow($sheet, $rowNum, $row['work_date'], $row);
+                $rowNum++;
+            }
+            $this->writeDailyTotalRow($sheet, $rowNum, Yii::t('app', '合计'), $daily['totals'], true);
+            $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
+        } else {
+            $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
+        }
 
         return $rowNum;
     }
