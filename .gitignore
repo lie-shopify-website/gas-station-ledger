@@ -37,6 +37,10 @@ phpunit.phar
 # vagrant runtime
 /.vagrant
 
+# local dumps and shell scripts in repo root only
+/*.sql
+/*.sh
+
 # ignore generated files
 /frontend/web/index.php
 /frontend/web/index-test.php
