@@ -290,7 +290,7 @@ class ExcelReportService
         $this->writeDailyCompanyBlock($sheet, $dailyCompany, $rowNum);
 
         $sheet->freezePane('A4');
-        foreach (range('A', 'E') as $col) {
+        foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }
@@ -366,7 +366,7 @@ class ExcelReportService
         }
 
         $sheet->freezePane('A4');
-        foreach (range('A', 'E') as $col) {
+        foreach (range('A', 'F') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
     }
@@ -697,10 +697,11 @@ class ExcelReportService
             Yii::t('app', '工作日期'),
             Yii::t('app', '公司'),
             Yii::t('app', '付款方式'),
+            Yii::t('app', '票数'),
             Yii::t('app', '升数'),
             Yii::t('app', '应收'),
         ], null, 'A' . $rowNum);
-        $this->styleHeader($sheet, 'A' . $rowNum . ':E' . $rowNum);
+        $this->styleHeader($sheet, 'A' . $rowNum . ':F' . $rowNum);
         $rowNum++;
 
         if ($dailyCompany['days']) {
@@ -710,39 +711,42 @@ class ExcelReportService
                         $index === 0 ? $day['work_date'] : '',
                         $row['company_name'],
                         $row['payment_type'],
+                        $row['count'],
                         $row['liters'],
                         $row['amount_due'],
                     ], null, 'A' . $rowNum);
-                    $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-                    $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-                    $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+                    $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+                    $sheet->getStyle('D' . $rowNum . ':F' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                     $rowNum++;
                 }
                 $sheet->fromArray([
                     $day['work_date'],
                     Yii::t('app', '当日合计'),
                     '',
+                    $day['totals']['count'],
                     $day['totals']['liters'],
                     $day['totals']['amount_due'],
                 ], null, 'A' . $rowNum);
-                $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-                $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-                $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->getFont()->setBold(true);
-                $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+                $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+                $sheet->getStyle('A' . $rowNum . ':F' . $rowNum)->getFont()->setBold(true);
+                $sheet->getStyle('D' . $rowNum . ':F' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
                 $rowNum++;
             }
             $sheet->fromArray([
                 Yii::t('app', '合计'),
                 '',
                 '',
+                $dailyCompany['totals']['count'],
                 $dailyCompany['totals']['liters'],
                 $dailyCompany['totals']['amount_due'],
             ], null, 'A' . $rowNum);
-            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->getFont()->setBold(true);
-            $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
+            $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':F' . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('D' . $rowNum . ':F' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A' . $headerRow . ':F' . $rowNum);
         } else {
             $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
         }
