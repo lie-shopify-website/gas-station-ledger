@@ -26,6 +26,7 @@ class DefaultController extends GslController
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'companyMonthly' => (new DailySummaryService())->getCompanyForRange($dateFrom, $dateTo),
+            'dailyCompany' => (new DailySummaryService())->getDailyCompanyForRange($dateFrom, $dateTo),
             'counterMonthly' => $service->getCounterMonthly($month),
         ]);
     }
@@ -90,6 +91,19 @@ class DefaultController extends GslController
 
         return $this->renderPartial('_daily', [
             'breakdown' => $service->getDailyBreakdown($month, $metric),
+        ]);
+    }
+
+    public function actionDailyCompany()
+    {
+        $this->checkPermission('dashboard.view');
+
+        $month = Yii::$app->request->get('month', GslSetting::getValue('ledger_month', date('Y-m')));
+        $service = new DashboardService();
+        [$from, $to] = $service->monthBounds($month);
+
+        return $this->renderPartial('_daily_company', [
+            'dailyCompany' => (new DailySummaryService())->getDailyCompanyForRange($from, $to),
         ]);
     }
 }

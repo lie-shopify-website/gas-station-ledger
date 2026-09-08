@@ -112,6 +112,83 @@ class DailySummaryService
     }
 
     /**
+     * Per-day companies that actually filled. Zero-fill companies are omitted.
+     *
+     * @return array{date_from:string,date_to:string,days:array,totals:array}
+     */
+    public function getDailyCompanyForRange(string $from, string $to): array
+    {
+        $aggregates = GslFill::find()
+            ->alias('f')
+            ->innerJoin(['co' => GslCompany::tableName()], 'co.id = f.company_id')
+            ->select([
+                'work_date' => 'f.work_date',
+                'company_id' => 'f.company_id',
+                'company_name' => 'co.name',
+                'payment_type' => 'co.payment_type',
+                'liters' => 'ROUND(SUM(f.liters), 3)',
+                'amount_due' => 'ROUND(SUM(f.amount_due), 2)',
+                'cnt' => 'COUNT(*)',
+            ])
+            ->where(['between', 'f.work_date', $from, $to])
+            ->andWhere(['>', 'f.liters', 0])
+            ->groupBy(['f.work_date', 'f.company_id'])
+            ->orderBy([
+                'f.work_date' => SORT_ASC,
+                'co.sort_order' => SORT_ASC,
+                'co.name' => SORT_ASC,
+            ])
+            ->asArray()
+            ->all();
+
+        $days = [];
+        $totals = ['count' => 0, 'liters' => 0.0, 'amount_due' => 0.0];
+        foreach ($aggregates as $agg) {
+            $date = $agg['work_date'];
+            if (!isset($days[$date])) {
+                $days[$date] = [
+                    'work_date' => $date,
+                    'companies' => [],
+                    'totals' => ['count' => 0, 'liters' => 0.0, 'amount_due' => 0.0],
+                ];
+            }
+
+            $row = [
+                'company_id' => (int) $agg['company_id'],
+                'company_name' => (string) $agg['company_name'],
+                'payment_type' => (string) $agg['payment_type'],
+                'count' => (int) $agg['cnt'],
+                'liters' => (float) $agg['liters'],
+                'amount_due' => (float) $agg['amount_due'],
+            ];
+            $days[$date]['companies'][] = $row;
+            $days[$date]['totals']['count'] += $row['count'];
+            $days[$date]['totals']['liters'] += $row['liters'];
+            $days[$date]['totals']['amount_due'] += $row['amount_due'];
+            $totals['count'] += $row['count'];
+            $totals['liters'] += $row['liters'];
+            $totals['amount_due'] += $row['amount_due'];
+        }
+
+        foreach ($days as &$day) {
+            $day['totals']['liters'] = round($day['totals']['liters'], 3);
+            $day['totals']['amount_due'] = round($day['totals']['amount_due'], 2);
+        }
+        unset($day);
+
+        return [
+            'date_from' => $from,
+            'date_to' => $to,
+            'days' => array_values($days),
+            'totals' => [
+                'count' => $totals['count'],
+                'liters' => round($totals['liters'], 3),
+                'amount_due' => round($totals['amount_due'], 2),
+            ],
+        ];
+    }
+
+    /**
      * @return GslFill[]
      */
     public function getFillsForRange(string $from, string $to): array

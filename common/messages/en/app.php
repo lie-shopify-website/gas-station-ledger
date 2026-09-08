@@ -19,6 +19,9 @@ return [
     '按公司' => 'By Company',
     '按柜台' => 'By Counter',
     '按日按柜台' => 'Daily by Counter',
+    '按日按公司' => 'Daily by Company',
+    '按日按公司 — {month}' => 'Daily by Company — {month}',
+    '当日合计' => 'Day Total',
 
     '柜台汇总' => 'Counter Summary',
     '柜台明细' => 'Counter Details',

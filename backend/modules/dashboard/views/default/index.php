@@ -6,6 +6,7 @@
 /** @var string $dateFrom */
 /** @var string $dateTo */
 /** @var array $companyMonthly */
+/** @var array $dailyCompany */
 /** @var array $counterMonthly */
 
 use yii\helpers\Html;
@@ -72,7 +73,10 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
                 <?= $kpiBox('bg-info', 'fas fa-list-ol', Yii::t('app', '加油笔数'), (string) (int) $kpis['fill_count'], ['metric' => 'fill_count']) ?>
             </div>
             <div class="col-md-2 col-sm-4 col-6">
-                <?= $kpiBox('bg-success', 'fas fa-tint', Yii::t('app', '总升数'), number_format($kpis['total_liters'], 3), ['metric' => 'total_liters']) ?>
+                <?= $kpiBox('bg-success', 'fas fa-tint', Yii::t('app', '总升数'), number_format($kpis['total_liters'], 3), [
+                    'url' => Url::to(['/dashboard/default/daily-company', 'month' => $month]),
+                    'title' => Yii::t('app', '按日按公司 — {month}', ['month' => $month]),
+                ]) ?>
             </div>
             <div class="col-md-2 col-sm-4 col-6">
                 <?= $kpiBox('bg-primary', 'fas fa-cash-register', Yii::t('app', '柜台金额'), number_format($kpis['list_amount'], 2), [
@@ -162,6 +166,9 @@ $kpiBox = static function (string $bg, string $icon, string $label, string $valu
                 </div>
             </div>
         </div>
+
+        <h5 class="mb-3 mt-4"><?= Yii::t('app', '按日按公司') ?></h5>
+        <?= $this->render('_daily_company', ['dailyCompany' => $dailyCompany]) ?>
 
         <hr class="mt-4 mb-3">
         <h5 class="mb-3"><?= Yii::t('app', '报告导出/下载') ?></h5>

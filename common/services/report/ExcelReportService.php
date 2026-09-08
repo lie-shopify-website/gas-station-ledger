@@ -84,7 +84,7 @@ class ExcelReportService
             $dashboard->getKpisForRange($from, $to),
             $daily->getCompanyForRange($from, $to),
             $dashboard->getCounterForRange($from, $to),
-            $dailyTotals
+            $daily->getDailyCompanyForRange($from, $to)
         );
 
         $paymentSummary = $payment->getSummaryForRange($from, $to);
@@ -140,7 +140,8 @@ class ExcelReportService
             $daily->getCompanyForRange($monthFrom, $monthTo),
             $payment->getSummaryForRange($monthFrom, $monthTo),
             $dashboard->getDailyTotalsForRange($monthFrom, $monthTo),
-            true
+            true,
+            $daily->getDailyCompanyForRange($monthFrom, $monthTo)
         );
 
         $dailySheet = $spreadsheet->createSheet();
@@ -167,9 +168,9 @@ class ExcelReportService
      * @param array{date_from:string,date_to:string,fill_count:int,total_liters:float,amount_due:float,list_amount:float,total_cost:float,swipe_liters:float} $kpis
      * @param array{date_from:string,date_to:string,companies:array,totals:array} $company
      * @param array{date_from:string,date_to:string,counters:array,totals:array} $counter
-     * @param array{date_from:string,date_to:string,days:array,totals:array} $daily
+     * @param array{date_from:string,date_to:string,days:array,totals:array} $dailyCompany
      */
-    private function writeMonthSheet(Worksheet $sheet, array $kpis, array $company, array $counter, array $daily): void
+    private function writeMonthSheet(Worksheet $sheet, array $kpis, array $company, array $counter, array $dailyCompany): void
     {
         $sheet->setTitle(Yii::t('app', '月汇总'));
         $range = $kpis['date_from'] === $kpis['date_to']
@@ -286,7 +287,7 @@ class ExcelReportService
         $this->applyBorder($sheet, 'A' . $headerRow . ':D' . $rowNum);
 
         $rowNum += 2;
-        $this->writeDailyTotalsBlock($sheet, $daily, $rowNum);
+        $this->writeDailyCompanyBlock($sheet, $dailyCompany, $rowNum);
 
         $sheet->freezePane('A4');
         foreach (range('A', 'E') as $col) {
@@ -304,7 +305,8 @@ class ExcelReportService
         array $company,
         array $payment,
         array $daily,
-        bool $monthly = false
+        bool $monthly = false,
+        ?array $dailyCompany = null
     ): void {
         $title = Yii::t('app', $monthly ? '月汇总' : '日报汇总');
         $range = $company['date_from'] === $company['date_to']
@@ -357,7 +359,11 @@ class ExcelReportService
         $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
 
         $rowNum += 2;
-        $this->writeDailyTotalsBlock($sheet, $daily, $rowNum);
+        if ($monthly && $dailyCompany !== null) {
+            $this->writeDailyCompanyBlock($sheet, $dailyCompany, $rowNum);
+        } else {
+            $this->writeDailyTotalsBlock($sheet, $daily, $rowNum);
+        }
 
         $sheet->freezePane('A4');
         foreach (range('A', 'E') as $col) {
@@ -674,6 +680,72 @@ class ExcelReportService
         $sheet->getStyle('A' . $rowNum . ':D' . $rowNum)->getFont()->setBold(true);
         $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         $this->applyBorder($sheet, 'A' . $startRow . ':D' . $rowNum);
+
+        return $rowNum;
+    }
+
+    /**
+     * @param array{date_from:string,date_to:string,days:array,totals:array} $dailyCompany
+     */
+    private function writeDailyCompanyBlock(Worksheet $sheet, array $dailyCompany, int $rowNum): int
+    {
+        $sheet->setCellValue('A' . $rowNum, Yii::t('app', '按日按公司'));
+        $this->styleTitle($sheet, 'A' . $rowNum);
+        $rowNum++;
+        $headerRow = $rowNum;
+        $sheet->fromArray([
+            Yii::t('app', '工作日期'),
+            Yii::t('app', '公司'),
+            Yii::t('app', '付款方式'),
+            Yii::t('app', '升数'),
+            Yii::t('app', '应收'),
+        ], null, 'A' . $rowNum);
+        $this->styleHeader($sheet, 'A' . $rowNum . ':E' . $rowNum);
+        $rowNum++;
+
+        if ($dailyCompany['days']) {
+            foreach ($dailyCompany['days'] as $day) {
+                foreach ($day['companies'] as $index => $row) {
+                    $sheet->fromArray([
+                        $index === 0 ? $day['work_date'] : '',
+                        $row['company_name'],
+                        $row['payment_type'],
+                        $row['liters'],
+                        $row['amount_due'],
+                    ], null, 'A' . $rowNum);
+                    $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+                    $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+                    $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                    $rowNum++;
+                }
+                $sheet->fromArray([
+                    $day['work_date'],
+                    Yii::t('app', '当日合计'),
+                    '',
+                    $day['totals']['liters'],
+                    $day['totals']['amount_due'],
+                ], null, 'A' . $rowNum);
+                $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+                $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+                $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->getFont()->setBold(true);
+                $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                $rowNum++;
+            }
+            $sheet->fromArray([
+                Yii::t('app', '合计'),
+                '',
+                '',
+                $dailyCompany['totals']['liters'],
+                $dailyCompany['totals']['amount_due'],
+            ], null, 'A' . $rowNum);
+            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':E' . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('D' . $rowNum . ':E' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A' . $headerRow . ':E' . $rowNum);
+        } else {
+            $sheet->setCellValue('A' . $rowNum, Yii::t('app', '无有效日数据'));
+        }
 
         return $rowNum;
     }
