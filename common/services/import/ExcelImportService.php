@@ -236,7 +236,7 @@ class ExcelImportService
                 'work_date' => $workDate,
                 'company_id' => $company->id,
                 'plate_id' => $plateId,
-                'liters' => FillAmountCalculator::truncLiters((float) $litersRaw),
+                'liters' => FillAmountCalculator::truncLiters($litersRaw),
                 'counter_id' => $counterId,
                 'ticket_no' => trim((string) $this->cellVal($sheet, 'F' . $row)),
                 'note' => trim((string) $this->cellVal($sheet, 'G' . $row)),
@@ -288,7 +288,7 @@ class ExcelImportService
                 'work_date' => $workDate,
                 'company_id' => $company->id,
                 'card_id' => $card->id,
-                'liters' => FillAmountCalculator::truncLiters((float) $litersRaw),
+                'liters' => FillAmountCalculator::truncLiters($litersRaw),
                 'swipe_receipt' => trim((string) $this->cellVal($sheet, 'E' . $row)),
             ]);
 
