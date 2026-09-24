@@ -269,3 +269,16 @@ a.desc:after {
 .gsl-ss-empty {
     color: #6c757d;
 }
+
+/* Sidebar: black background with white text */
+.main-sidebar.sidebar-dark-primary {
+    background-color: #000;
+}
+
+.main-sidebar.sidebar-dark-primary .brand-link,
+.main-sidebar.sidebar-dark-primary .sidebar a,
+.main-sidebar.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link,
+.main-sidebar.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:active,
+.main-sidebar.sidebar-dark-primary .nav-sidebar .nav-treeview > .nav-item > .nav-link {
+    color: #fff;
+}
