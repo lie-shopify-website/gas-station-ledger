@@ -53,7 +53,7 @@ class PaymentTypeSummaryService
 
         $rows = [];
         $totals = ['liters' => 0.0, 'list_amount' => 0.0, 'count' => 0];
-        foreach (['Cash', 'MCM'] as $paymentType) {
+        foreach (GslCompany::PAYMENT_TYPES as $paymentType) {
             $row = $byType[$paymentType] ?? [
                 'payment_type' => $paymentType,
                 'liters' => 0.0,

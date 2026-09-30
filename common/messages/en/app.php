@@ -223,7 +223,7 @@ return [
 
     '当日挂牌价' => 'List Price Today',
 
-    '当日 Cash / MCM 汇总' => 'Daily Cash / MCM Summary',
+    '当日 {types} 汇总' => 'Daily {types} Summary',
 
     '票数' => 'Tickets',
 

@@ -4,6 +4,7 @@
 /** @var common\models\GslCompany $model */
 /** @var string $title */
 
+use common\models\GslCompany;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 $this->title = $title;
@@ -15,7 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="card-body">
         <?php $form = ActiveForm::begin(); ?>
         <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
-        <?= $form->field($model, 'payment_type')->dropDownList(['Cash' => 'Cash', 'MCM' => 'MCM']) ?>
+        <?= $form->field($model, 'payment_type')->dropDownList(array_combine(GslCompany::PAYMENT_TYPES, GslCompany::PAYMENT_TYPES)) ?>
         <?= $form->field($model, 'sort_order')->textInput(['type' => 'number']) ?>
         <?= $form->field($model, 'is_active')->checkbox() ?>
         <div class="form-group">

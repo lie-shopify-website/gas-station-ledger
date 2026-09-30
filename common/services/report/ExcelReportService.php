@@ -2,6 +2,8 @@
 
 namespace common\services\report;
 
+use common\models\GslCompany;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -559,87 +561,106 @@ class ExcelReportService
         $sheet->setCellValue('B1', $range);
         $this->styleTitle($sheet, 'A1:B1');
 
+        $blocks = [];
+        $index = 3;
+        foreach (GslCompany::PAYMENT_TYPES as $type) {
+            $blocks[] = [
+                'label' => $type,
+                'key' => strtolower($type),
+                'start' => $index,
+            ];
+            $index += 3;
+        }
+        $totalBlock = ['label' => Yii::t('app', '合计'), 'start' => $index];
+        $lastCol = $totalBlock['start'] + 2;
+        $lastColLetter = Coordinate::stringFromColumnIndex($lastCol);
+
         $sheet->mergeCells('A3:A4');
         $sheet->mergeCells('B3:B4');
-        $sheet->mergeCells('C3:E3');
-        $sheet->mergeCells('F3:H3');
-        $sheet->mergeCells('I3:K3');
         $sheet->setCellValue('A3', Yii::t('app', '工作日期'));
         $sheet->setCellValue('B3', Yii::t('app', '柜台'));
-        $sheet->setCellValue('C3', 'Cash');
-        $sheet->setCellValue('F3', 'MCM');
-        $sheet->setCellValue('I3', Yii::t('app', '合计'));
-        $sheet->fromArray([
-            Yii::t('app', '升数'),
-            Yii::t('app', '挂牌金额'),
-            Yii::t('app', '票数'),
-            Yii::t('app', '升数'),
-            Yii::t('app', '挂牌金额'),
-            Yii::t('app', '票数'),
-            Yii::t('app', '升数'),
-            Yii::t('app', '挂牌金额'),
-            Yii::t('app', '票数'),
-        ], null, 'C4');
-        $this->styleHeader($sheet, 'A3:K4');
-        $sheet->getStyle('A3:K4')->getAlignment()
+        foreach ($blocks as $block) {
+            $startLetter = Coordinate::stringFromColumnIndex($block['start']);
+            $endLetter = Coordinate::stringFromColumnIndex($block['start'] + 2);
+            $sheet->mergeCells($startLetter . '3:' . $endLetter . '3');
+            $sheet->setCellValue($startLetter . '3', $block['label']);
+        }
+        $totalStartLetter = Coordinate::stringFromColumnIndex($totalBlock['start']);
+        $totalEndLetter = Coordinate::stringFromColumnIndex($totalBlock['start'] + 2);
+        $sheet->mergeCells($totalStartLetter . '3:' . $totalEndLetter . '3');
+        $sheet->setCellValue($totalStartLetter . '3', $totalBlock['label']);
+
+        $headers = [];
+        foreach (array_merge($blocks, [$totalBlock]) as $block) {
+            $headers[] = Yii::t('app', '升数');
+            $headers[] = Yii::t('app', '挂牌金额');
+            $headers[] = Yii::t('app', '票数');
+        }
+        $sheet->fromArray($headers, null, 'C4');
+        $headerRange = 'A3:' . $lastColLetter . '4';
+        $this->styleHeader($sheet, $headerRange);
+        $sheet->getStyle($headerRange)->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
             ->setVertical(Alignment::VERTICAL_CENTER);
 
         $rowNum = 5;
         foreach ($daily['rows'] as $row) {
-            $sheet->fromArray([
-                $row['work_date'],
-                $row['counter_code'],
-                $row['cash']['liters'],
-                $row['cash']['list_amount'],
-                $row['cash']['count'],
-                $row['mcm']['liters'],
-                $row['mcm']['list_amount'],
-                $row['mcm']['count'],
-                $row['liters'],
-                $row['list_amount'],
-                $row['count'],
-            ], null, 'A' . $rowNum);
-            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('I' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('J' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('C' . $rowNum . ':K' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $data = [$row['work_date'], $row['counter_code']];
+            foreach ($blocks as $block) {
+                $stats = $row['payments'][$block['key']] ?? ['liters' => 0.0, 'list_amount' => 0.0, 'count' => 0];
+                $data[] = $stats['liters'];
+                $data[] = $stats['list_amount'];
+                $data[] = $stats['count'];
+            }
+            $data[] = $row['liters'];
+            $data[] = $row['list_amount'];
+            $data[] = $row['count'];
+            $sheet->fromArray($data, null, 'A' . $rowNum);
+            $this->stylePaymentBlockCells($sheet, $rowNum, $blocks, $totalBlock);
+            $sheet->getStyle('C' . $rowNum . ':' . $lastColLetter . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $rowNum++;
         }
 
         if ($daily['rows']) {
-            $sheet->fromArray([
-                Yii::t('app', '合计'),
-                '',
-                $daily['totals']['cash']['liters'],
-                $daily['totals']['cash']['list_amount'],
-                $daily['totals']['cash']['count'],
-                $daily['totals']['mcm']['liters'],
-                $daily['totals']['mcm']['list_amount'],
-                $daily['totals']['mcm']['count'],
-                $daily['totals']['liters'],
-                $daily['totals']['list_amount'],
-                $daily['totals']['count'],
-            ], null, 'A' . $rowNum);
-            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('I' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
-            $sheet->getStyle('J' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
-            $sheet->getStyle('A' . $rowNum . ':K' . $rowNum)->getFont()->setBold(true);
-            $sheet->getStyle('C' . $rowNum . ':K' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
-            $this->applyBorder($sheet, 'A3:K' . $rowNum);
+            $data = [Yii::t('app', '合计'), ''];
+            foreach ($blocks as $block) {
+                $stats = $daily['totals']['payments'][$block['key']] ?? ['liters' => 0.0, 'list_amount' => 0.0, 'count' => 0];
+                $data[] = $stats['liters'];
+                $data[] = $stats['list_amount'];
+                $data[] = $stats['count'];
+            }
+            $data[] = $daily['totals']['liters'];
+            $data[] = $daily['totals']['list_amount'];
+            $data[] = $daily['totals']['count'];
+            $sheet->fromArray($data, null, 'A' . $rowNum);
+            $this->stylePaymentBlockCells($sheet, $rowNum, $blocks, $totalBlock);
+            $sheet->getStyle('A' . $rowNum . ':' . $lastColLetter . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('C' . $rowNum . ':' . $lastColLetter . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A3:' . $lastColLetter . $rowNum);
         } else {
             $sheet->setCellValue('A5', Yii::t('app', '无有效日数据'));
         }
 
         $sheet->freezePane('A5');
-        foreach (range('A', 'K') as $col) {
+        foreach (range('A', $lastColLetter) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * Within every 3-column block the first column is liters (3 decimals)
+     * and the second is the amount (2 decimals); the third (count) is unformatted.
+     *
+     * @param array<int, array{label:string,key:string,start:int}> $blocks
+     * @param array{label:string,start:int} $totalBlock
+     */
+    private function stylePaymentBlockCells(Worksheet $sheet, int $rowNum, array $blocks, array $totalBlock): void
+    {
+        foreach (array_merge($blocks, [$totalBlock]) as $block) {
+            $startLetter = Coordinate::stringFromColumnIndex($block['start']);
+            $midLetter = Coordinate::stringFromColumnIndex($block['start'] + 1);
+            $sheet->getStyle($startLetter . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle($midLetter . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
         }
     }
 

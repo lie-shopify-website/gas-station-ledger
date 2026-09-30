@@ -6,6 +6,8 @@ use yii\db\ActiveRecord;
 
 class GslCompany extends ActiveRecord
 {
+    public const PAYMENT_TYPES = ['Cash', 'MCM', 'VCM'];
+
     public static function tableName()
     {
         return '{{%gsl_company}}';
@@ -16,7 +18,7 @@ class GslCompany extends ActiveRecord
         return [
             [['name', 'payment_type'], 'required'],
             [['name'], 'string', 'max' => 64],
-            [['payment_type'], 'in', 'range' => ['Cash', 'MCM']],
+            [['payment_type'], 'in', 'range' => self::PAYMENT_TYPES],
             [['sort_order'], 'integer'],
             [['is_active'], 'boolean'],
         ];

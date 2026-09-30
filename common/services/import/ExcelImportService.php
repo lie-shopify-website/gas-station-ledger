@@ -120,7 +120,7 @@ class ExcelImportService
                 continue;
             }
             $payment = trim((string) $this->cellVal($sheet, $col . '3'));
-            if (!in_array($payment, ['Cash', 'MCM'], true)) {
+            if (!in_array($payment, GslCompany::PAYMENT_TYPES, true)) {
                 $payment = 'Cash';
             }
             $company = $this->saveCompany($name, $payment, $i + 1);
