@@ -5,7 +5,6 @@
 /** @var array $paymentSummary */
 /** @var array $companySummary */
 
-use common\models\GslCompany;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
@@ -38,7 +37,7 @@ $listPrice = $summary['list_price'];
         </div>
         <?php ActiveForm::end(); ?>
 
-        <h5 class="mb-3"><?= Yii::t('app', '当日 {types} 汇总', ['types' => implode(' / ', GslCompany::PAYMENT_TYPES)]) ?></h5>
+        <h5 class="mb-3"><?= Yii::t('app', '当日 Cash / MCM 汇总') ?></h5>
         <div class="table-responsive mb-4">
             <table class="table table-bordered table-striped table-sm mb-0">
                 <thead>
@@ -77,20 +76,20 @@ $listPrice = $summary['list_price'];
                     <th rowspan="2"><?= Yii::t('app', '柜台') ?></th>
                     <th rowspan="2" class="text-right"><?= Yii::t('app', '挂牌价格') ?></th>
                     <th colspan="3" class="text-center"><?= Yii::t('app', '合计') ?></th>
-                    <?php foreach (GslCompany::PAYMENT_TYPES as $type): ?>
-                    <th colspan="3" class="text-center"><?= Html::encode($type) ?></th>
-                    <?php endforeach; ?>
+                    <th colspan="3" class="text-center">Cash</th>
+                    <th colspan="3" class="text-center">MCM</th>
                     <th rowspan="2"></th>
                 </tr>
                 <tr>
                     <th class="text-right"><?= Yii::t('app', '升数') ?></th>
                     <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
                     <th class="text-right"><?= Yii::t('app', '笔数') ?></th>
-                    <?php foreach (GslCompany::PAYMENT_TYPES as $type): ?>
                     <th class="text-right"><?= Yii::t('app', '升数') ?></th>
                     <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
                     <th class="text-right"><?= Yii::t('app', '票数') ?></th>
-                    <?php endforeach; ?>
+                    <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '挂牌金额') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '票数') ?></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -101,11 +100,12 @@ $listPrice = $summary['list_price'];
                     <td class="text-right"><?= number_format($row['liters'], 3) ?></td>
                     <td class="text-right"><?= number_format($row['list_amount'], 2) ?></td>
                     <td class="text-right"><?= (int) $row['count'] ?></td>
-                    <?php foreach (GslCompany::PAYMENT_TYPES as $type): $key = strtolower($type); ?>
-                    <td class="text-right"><?= number_format($row['payments'][$key]['liters'], 3) ?></td>
-                    <td class="text-right"><?= number_format($row['payments'][$key]['list_amount'], 2) ?></td>
-                    <td class="text-right"><?= (int) $row['payments'][$key]['count'] ?></td>
-                    <?php endforeach; ?>
+                    <td class="text-right"><?= number_format($row['cash']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($row['cash']['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $row['cash']['count'] ?></td>
+                    <td class="text-right"><?= number_format($row['mcm']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($row['mcm']['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $row['mcm']['count'] ?></td>
                     <td>
                         <?= Html::button(Yii::t('app', '查看明细'), [
                             'class' => 'btn btn-outline-secondary btn-sm gsl-detail-modal-trigger',
@@ -126,11 +126,12 @@ $listPrice = $summary['list_price'];
                     <td class="text-right"><?= number_format($summary['totals']['liters'], 3) ?></td>
                     <td class="text-right"><?= number_format($summary['totals']['list_amount'], 2) ?></td>
                     <td class="text-right"><?= (int) $summary['totals']['count'] ?></td>
-                    <?php foreach (GslCompany::PAYMENT_TYPES as $type): $key = strtolower($type); ?>
-                    <td class="text-right"><?= number_format($summary['totals']['payments'][$key]['liters'], 3) ?></td>
-                    <td class="text-right"><?= number_format($summary['totals']['payments'][$key]['list_amount'], 2) ?></td>
-                    <td class="text-right"><?= (int) $summary['totals']['payments'][$key]['count'] ?></td>
-                    <?php endforeach; ?>
+                    <td class="text-right"><?= number_format($summary['totals']['cash']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($summary['totals']['cash']['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $summary['totals']['cash']['count'] ?></td>
+                    <td class="text-right"><?= number_format($summary['totals']['mcm']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($summary['totals']['mcm']['list_amount'], 2) ?></td>
+                    <td class="text-right"><?= (int) $summary['totals']['mcm']['count'] ?></td>
                     <td></td>
                 </tr>
                 </tfoot>

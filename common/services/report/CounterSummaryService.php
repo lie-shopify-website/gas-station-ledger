@@ -22,7 +22,8 @@ class CounterSummaryService
             'liters' => 0,
             'list_amount' => 0,
             'count' => 0,
-            'payments' => $this->emptyPaymentMap(),
+            'cash' => $this->emptyPaymentStats(),
+            'mcm' => $this->emptyPaymentStats(),
         ];
 
         foreach ($counters as $counter) {
@@ -37,6 +38,9 @@ class CounterSummaryService
                 ->asArray()
                 ->one();
 
+            $cash = $paymentByCounter[$counter->id]['Cash'] ?? $this->emptyPaymentStats();
+            $mcm = $paymentByCounter[$counter->id]['MCM'] ?? $this->emptyPaymentStats();
+
             $row = [
                 'counter_id' => $counter->id,
                 'counter_code' => $counter->code,
@@ -44,19 +48,15 @@ class CounterSummaryService
                 'liters' => (float) ($agg['liters'] ?? 0),
                 'list_amount' => (float) ($agg['list_amount'] ?? 0),
                 'count' => (int) ($agg['cnt'] ?? 0),
-                'payments' => $this->emptyPaymentMap(),
+                'cash' => $cash,
+                'mcm' => $mcm,
             ];
-            foreach (GslCompany::PAYMENT_TYPES as $type) {
-                $key = $this->paymentKey($type);
-                $stats = $paymentByCounter[$counter->id][$type] ?? $this->emptyPaymentStats();
-                $row['payments'][$key] = $stats;
-                $this->addPaymentStats($totals['payments'][$key], $stats);
-            }
-
             $rows[] = $row;
             $totals['liters'] += $row['liters'];
             $totals['list_amount'] += $row['list_amount'];
             $totals['count'] += $row['count'];
+            $this->addPaymentStats($totals['cash'], $cash);
+            $this->addPaymentStats($totals['mcm'], $mcm);
         }
 
         return [
@@ -136,7 +136,7 @@ class CounterSummaryService
     }
 
     /**
-     * Per-day, per-counter payment-type split.
+     * Per-day, per-counter Cash / MCM split.
      *
      * @return array{date_from:string,date_to:string,rows:array,totals:array}
      */
@@ -171,7 +171,8 @@ class CounterSummaryService
             'count' => 0,
             'liters' => 0.0,
             'list_amount' => 0.0,
-            'payments' => $this->emptyPaymentMap(),
+            'cash' => $this->emptyPaymentStats(),
+            'mcm' => $this->emptyPaymentStats(),
         ];
 
         foreach ($aggregates as $agg) {
@@ -184,7 +185,8 @@ class CounterSummaryService
                     'count' => 0,
                     'liters' => 0.0,
                     'list_amount' => 0.0,
-                    'payments' => $this->emptyPaymentMap(),
+                    'cash' => $this->emptyPaymentStats(),
+                    'mcm' => $this->emptyPaymentStats(),
                 ];
             }
 
@@ -193,18 +195,12 @@ class CounterSummaryService
                 'list_amount' => (float) $agg['list_amount'],
                 'count' => (int) $agg['cnt'],
             ];
-            $paymentKey = $this->paymentKey((string) $agg['payment_type']);
-            if (!isset($rows[$key]['payments'][$paymentKey])) {
-                $rows[$key]['payments'][$paymentKey] = $this->emptyPaymentStats();
-            }
-            if (!isset($totals['payments'][$paymentKey])) {
-                $totals['payments'][$paymentKey] = $this->emptyPaymentStats();
-            }
-            $this->addPaymentStats($rows[$key]['payments'][$paymentKey], $stats);
+            $type = strtoupper((string) $agg['payment_type']) === 'MCM' ? 'mcm' : 'cash';
+            $this->addPaymentStats($rows[$key][$type], $stats);
             $rows[$key]['count'] += $stats['count'];
             $rows[$key]['liters'] += $stats['liters'];
             $rows[$key]['list_amount'] += $stats['list_amount'];
-            $this->addPaymentStats($totals['payments'][$paymentKey], $stats);
+            $this->addPaymentStats($totals[$type], $stats);
             $totals['count'] += $stats['count'];
             $totals['liters'] += $stats['liters'];
             $totals['list_amount'] += $stats['list_amount'];
@@ -218,13 +214,16 @@ class CounterSummaryService
                 'count' => $totals['count'],
                 'liters' => round($totals['liters'], 3),
                 'list_amount' => round($totals['list_amount'], 2),
-                'payments' => array_map(static function (array $stats): array {
-                    return [
-                        'count' => $stats['count'],
-                        'liters' => round($stats['liters'], 3),
-                        'list_amount' => round($stats['list_amount'], 2),
-                    ];
-                }, $totals['payments']),
+                'cash' => [
+                    'count' => $totals['cash']['count'],
+                    'liters' => round($totals['cash']['liters'], 3),
+                    'list_amount' => round($totals['cash']['list_amount'], 2),
+                ],
+                'mcm' => [
+                    'count' => $totals['mcm']['count'],
+                    'liters' => round($totals['mcm']['liters'], 3),
+                    'list_amount' => round($totals['mcm']['list_amount'], 2),
+                ],
             ],
         ];
     }
@@ -281,23 +280,6 @@ class CounterSummaryService
         }
 
         return $byCounter;
-    }
-
-    /**
-     * @return array<string, array{liters:float,list_amount:float,count:int}>
-     */
-    private function emptyPaymentMap(): array
-    {
-        $map = [];
-        foreach (GslCompany::PAYMENT_TYPES as $type) {
-            $map[$this->paymentKey($type)] = $this->emptyPaymentStats();
-        }
-        return $map;
-    }
-
-    private function paymentKey(string $paymentType): string
-    {
-        return strtolower($paymentType);
     }
 
     /**
