@@ -50,6 +50,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     <th><?= Yii::t('app', '卡号') ?></th>
 
+                    <th><?= Yii::t('app', '卡类型') ?></th>
+
                     <th><?= Yii::t('app', '真实卡号') ?></th>
 
                     <th class="text-right"><?= Yii::t('app', '月配额') ?></th>
@@ -72,7 +74,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <?php if (empty($cards)): ?>
 
-                <tr><td colspan="<?= $canWrite ? 8 : 7 ?>" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
+                <tr><td colspan="<?= $canWrite ? 9 : 8 ?>" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
 
                 <?php else: ?>
 
@@ -81,6 +83,8 @@ $this->params['breadcrumbs'][] = $this->title;
                 <tr>
 
                     <td><?= Html::encode($card->card_code) ?></td>
+
+                    <td><?= $card->getCardTypeName() !== '' ? Html::encode($card->getCardTypeName()) : '—' ?></td>
 
                     <td><?= $card->real_card_no !== null && $card->real_card_no !== '' ? Html::encode($card->real_card_no) : '—' ?></td>
 

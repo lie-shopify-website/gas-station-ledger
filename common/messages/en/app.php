@@ -269,6 +269,56 @@ return [
 
     '日期' => 'Date',
 
+    '升' => 'L',
+
+    '刷卡记录' => 'Swipe Records',
+
+    '新增刷卡记录' => 'Add Swipe',
+
+    '编辑刷卡记录 #{id}' => 'Edit Swipe #{id}',
+
+    '刷卡记录已创建。' => 'Swipe record created.',
+
+    '刷卡记录已更新。' => 'Swipe record updated.',
+
+    '刷卡记录已删除。' => 'Swipe record deleted.',
+
+    '确定删除此刷卡记录？' => 'Delete this swipe record?',
+
+    '选择油卡' => 'Select card',
+
+    '优惠价' => 'Discount Price',
+
+    '该卡当日已刷' => 'This Card Today',
+
+    '单次刷卡上限' => 'Max per Swipe',
+
+    '单卡每日上限' => 'Max per Card per Day',
+
+    '升数必须大于 0。' => 'Liters must be greater than 0.',
+
+    '单次刷卡不得超过 {max} 升。' => 'A single swipe cannot exceed {max} liters.',
+
+    '该卡当日累计不得超过 {max} 升（已刷 {used} 升）。' => 'This card cannot exceed {max} liters per day ({used} liters already swiped).',
+
+
+
+    // Card types
+
+    '卡类型' => 'Card Type',
+
+    '选择卡类型' => 'Select card type',
+
+    '类型代码' => 'Type Code',
+
+    '类型名称' => 'Type Name',
+
+    '按卡类型汇总' => 'By Card Type',
+
+    '卡数' => 'Cards',
+
+    '未分类' => 'Uncategorized',
+
 
 
     // Fills

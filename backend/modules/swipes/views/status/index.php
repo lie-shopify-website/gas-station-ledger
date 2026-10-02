@@ -232,6 +232,60 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
 
+        <h5 class="mt-3"><?= Yii::t('app', '按卡类型汇总') ?></h5>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-striped table-sm mb-0">
+
+                <thead>
+
+                <tr>
+
+                    <th><?= Yii::t('app', '卡类型') ?></th>
+
+                    <th class="text-right"><?= Yii::t('app', '卡数') ?></th>
+
+                    <th class="text-right"><?= Yii::t('app', '月配额') ?></th>
+
+                    <th class="text-right"><?= Yii::t('app', '已刷升数') ?></th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <?php if (empty($status['types'])): ?>
+
+                <tr><td colspan="4" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
+
+                <?php else: ?>
+
+                <?php foreach ($status['types'] as $type): ?>
+
+                <tr>
+
+                    <td><?= Html::encode($type['name']) ?></td>
+
+                    <td class="text-right"><?= (int) $type['cards'] ?></td>
+
+                    <td class="text-right"><?= number_format($type['quota'], 3) ?></td>
+
+                    <td class="text-right"><?= number_format($type['used'], 3) ?></td>
+
+                </tr>
+
+                <?php endforeach; ?>
+
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
         <?= Html::button(Yii::t('app', '查看明细'), [
 
             'class' => 'btn btn-outline-secondary btn-sm gsl-detail-modal-trigger',

@@ -10,6 +10,8 @@
 
 
 
+use common\models\GslCardType;
+
 use yii\helpers\Html;
 
 use yii\widgets\ActiveForm;
@@ -31,6 +33,11 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php $form = ActiveForm::begin(); ?>
 
         <?= $form->field($model, 'card_code')->textInput(['maxlength' => true]) ?>
+
+        <?= $form->field($model, 'card_type_id')->dropDownList(
+            GslCardType::options(),
+            ['prompt' => Yii::t('app', '选择卡类型')]
+        ) ?>
 
         <?= $form->field($model, 'real_card_no')->textInput(['maxlength' => true]) ?>
 

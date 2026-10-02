@@ -13,7 +13,9 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="card-body">
         <?php $form = ActiveForm::begin(); ?>
         <?= $form->field($model, 'ledger_month')->input('month') ?>
-        <?= $form->field($model, 'cost_per_liter')->textInput(['type' => 'number', 'step' => '0.01']) ?>
+        <?= $form->field($model, 'cost_per_liter')->textInput(['type' => 'number', 'step' => '0.01']) ?>
+        <?= $form->field($model, 'swipe_max_per_time')->textInput(['type' => 'number', 'step' => '0.001']) ?>
+        <?= $form->field($model, 'swipe_max_per_card_day')->textInput(['type' => 'number', 'step' => '0.001']) ?>
         <div class="form-group">
             <?= Html::submitButton(Yii::t('app', '保存'), ['class' => 'btn btn-success']) ?>
         </div>
