@@ -55,8 +55,8 @@ $cardItems = ArrayHelper::map(
         $searchableOptions + ['prompt' => Yii::t('app', '选择油卡')]
     ) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'liters')->textInput(['type' => 'number', 'step' => '0.001']) ?></div>
-    <div class="col-md-4"><?= $form->field($model, 'discount_price')->textInput(['readonly' => true]) ?></div>
-    <div class="col-md-4"><?= $form->field($model, 'amount_due')->textInput(['readonly' => true]) ?></div>
+    <div class="col-md-4"><?= $form->field($model, 'owner_rate')->textInput(['readonly' => true]) ?></div>
+    <div class="col-md-4"><?= $form->field($model, 'owner_payout')->textInput(['readonly' => true]) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'swipe_receipt')->textInput(['maxlength' => true]) ?></div>
     <div class="col-md-8"><?= $form->field($model, 'note')->textInput(['maxlength' => true]) ?></div>
 </div>
@@ -82,8 +82,8 @@ $js = <<<JS
     var \$company = $('#gslswipe-company_id');
     var \$card = $('#gslswipe-card_id');
     var \$liters = $('#gslswipe-liters');
-    var \$price = $('#gslswipe-discount_price');
-    var \$amount = $('#gslswipe-amount_due');
+    var \$rate = $('#gslswipe-owner_rate');
+    var \$payout = $('#gslswipe-owner_payout');
 
     function fmt(n, digits) {
         n = parseFloat(n);
@@ -93,10 +93,10 @@ $js = <<<JS
         return n.toFixed(digits === undefined ? 3 : digits);
     }
 
-    function calcAmount() {
+    function calcPayout() {
         var liters = parseFloat(\$liters.val()) || 0;
-        var price = parseFloat(\$price.val()) || 0;
-        \$amount.val((liters * price).toFixed(2));
+        var rate = parseFloat(\$rate.val()) || 0;
+        \$payout.val((liters * rate).toFixed(2));
     }
 
     function paint(data) {
@@ -108,10 +108,10 @@ $js = <<<JS
         $('#swipe-summary-left').text(fmt(data.left_liters));
         $('#swipe-summary-card-used').text(fmt(data.card_day_liters));
         $('#swipe-summary-card-limit').text(fmt(data.card_day_limit));
-        if (data.discount_price !== null && data.discount_price !== undefined) {
-            \$price.val(fmt(data.discount_price, 2));
+        if (data.owner_rate !== null && data.owner_rate !== undefined) {
+            \$rate.val(fmt(data.owner_rate, 2));
         }
-        calcAmount();
+        calcPayout();
     }
 
     function refresh() {
@@ -126,8 +126,8 @@ $js = <<<JS
     \$date.on('change', refresh);
     \$company.on('change', refresh);
     \$card.on('change', refresh);
-    \$liters.on('input', calcAmount);
-    \$price.on('input', calcAmount);
+    \$liters.on('input', calcPayout);
+    \$rate.on('input', calcPayout);
 
     paint(initial);
 

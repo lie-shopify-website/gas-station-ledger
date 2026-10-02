@@ -26,6 +26,10 @@ class SwipeStatusService
             ->where(['between', 'work_date', $from, $to])
             ->sum('liters');
 
+        $ownerPayout = (float) GslSwipe::find()
+            ->where(['between', 'work_date', $from, $to])
+            ->sum('owner_payout');
+
         $cards = GslCard::find()->where(['is_active' => 1])->orderBy('sort_order')->all();
         $cardRows = [];
         foreach ($cards as $card) {
@@ -41,15 +45,49 @@ class SwipeStatusService
         }
 
         $typeRows = $this->typeRows($from, $to);
+        $rateRows = $this->rateRows($from, $to);
 
         return [
             'month' => $month,
             'fill_liters' => round($fillLiters, 3),
             'swiped_liters' => round($swipedLiters, 3),
             'left_liters' => round($fillLiters - $swipedLiters, 3),
+            'owner_payout' => round($ownerPayout, 2),
             'cards' => $cardRows,
             'types' => $typeRows,
+            'rates' => $rateRows,
         ];
+    }
+
+    /**
+     * 按卡费率（0.7/0.8）汇总当月已刷升数与应付持卡人。
+     *
+     * @return array<int, array{rate:float,liters:float,payout:float}>
+     */
+    private function rateRows(string $from, string $to): array
+    {
+        $rows = GslSwipe::find()
+            ->select([
+                'rate' => '[[owner_rate]]',
+                'liters' => 'ROUND(SUM([[liters]]), 3)',
+                'payout' => 'ROUND(SUM([[owner_payout]]), 2)',
+            ])
+            ->where(['between', 'work_date', $from, $to])
+            ->groupBy(['owner_rate'])
+            ->orderBy(['owner_rate' => SORT_ASC])
+            ->asArray()
+            ->all();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[] = [
+                'rate' => (float) $row['rate'],
+                'liters' => round((float) $row['liters'], 3),
+                'payout' => round((float) $row['payout'], 2),
+            ];
+        }
+
+        return $result;
     }
 
     /**

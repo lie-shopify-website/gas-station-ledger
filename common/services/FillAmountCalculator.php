@@ -62,6 +62,14 @@ class FillAmountCalculator
     }
 
     /**
+     * 应付持卡人 = 刷卡升数 × 卡费率（0.7/0.8），存正数（支出）。
+     */
+    public static function calcOwnerPayout(float $liters, float $ownerRate): float
+    {
+        return self::roundPrice(self::truncLiters($liters) * self::roundPrice($ownerRate));
+    }
+
+    /**
      * @return array{list_price:float,list_amount:float,discount_price:float,amount_due:float,cost:float}
      */
     public static function snapshot(float $liters, float $listPrice, float $discountPrice, float $costPerLiter): array

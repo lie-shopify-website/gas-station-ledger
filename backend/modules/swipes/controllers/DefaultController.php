@@ -4,9 +4,8 @@ namespace backend\modules\swipes\controllers;
 
 use backend\components\GslController;
 use backend\modules\swipes\models\GslSwipeSearch;
+use common\models\GslCard;
 use common\models\GslFill;
-use common\models\GslPriceDiscount;
-use common\models\GslPricePeriod;
 use common\models\GslSetting;
 use common\models\GslSwipe;
 use common\services\FillAmountCalculator;
@@ -37,7 +36,7 @@ class DefaultController extends GslController
         $this->checkPermission('swipes.write');
 
         $model = new GslSwipe(['work_date' => date('Y-m-d')]);
-        if ($model->load(Yii::$app->request->post()) && $this->saveSwipe($model)) {
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Yii::$app->session->setFlash('success', Yii::t('app', '刷卡记录已创建。'));
             return $this->redirect(['index', 'GslSwipeSearch' => ['work_date' => $model->work_date]]);
         }
@@ -53,7 +52,7 @@ class DefaultController extends GslController
         $this->checkPermission('swipes.write');
 
         $model = $this->findModel($id);
-        if ($model->load(Yii::$app->request->post()) && $this->saveSwipe($model)) {
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Yii::$app->session->setFlash('success', Yii::t('app', '刷卡记录已更新。'));
             return $this->redirect(['index', 'GslSwipeSearch' => ['work_date' => $model->work_date]]);
         }
@@ -77,7 +76,7 @@ class DefaultController extends GslController
     }
 
     /**
-     * 表单联动：按 (日期, 公司) 返回加油总额/已刷/待刷 + 优惠价 + 该卡当日已刷。
+     * 表单联动：按 (日期, 公司) 返回加油总额/已刷/待刷 + 所选卡费率 + 该卡当日已刷。
      */
     public function actionSummary()
     {
@@ -101,7 +100,7 @@ class DefaultController extends GslController
             'card_day_liters' => 0.0,
             'card_day_limit' => (float) GslSetting::getValue('swipe_max_per_card_day', 500),
             'per_time_limit' => (float) GslSetting::getValue('swipe_max_per_time', 250),
-            'discount_price' => null,
+            'owner_rate' => null,
         ];
 
         if ($date !== '' && $companyId > 0) {
@@ -115,20 +114,14 @@ class DefaultController extends GslController
             $result['fill_liters'] = round($fill, 3);
             $result['swiped_liters'] = round($swiped, 3);
             $result['left_liters'] = round($fill - $swiped, 3);
-
-            $period = GslPricePeriod::findForDate($date);
-            if ($period) {
-                $discount = GslPriceDiscount::findOne([
-                    'price_period_id' => $period->id,
-                    'company_id' => $companyId,
-                ]);
-                $result['discount_price'] = FillAmountCalculator::roundPrice(
-                    $discount ? (float) $discount->discount_price : (float) $period->list_price
-                );
-            }
         }
 
         if ($date !== '' && $cardId > 0) {
+            $card = GslCard::findOne($cardId);
+            if ($card) {
+                $result['owner_rate'] = FillAmountCalculator::roundPrice((float) $card->owner_rate);
+            }
+
             $query = GslSwipe::find()->where(['card_id' => $cardId, 'work_date' => $date]);
             if ($excludeId > 0) {
                 $query->andWhere(['<>', 'id', $excludeId]);
@@ -137,33 +130,6 @@ class DefaultController extends GslController
         }
 
         return $result;
-    }
-
-    protected function saveSwipe(GslSwipe $model): bool
-    {
-        $this->applyPricing($model);
-        return $model->save();
-    }
-
-    protected function applyPricing(GslSwipe $model): void
-    {
-        if (!$model->work_date || !$model->company_id) {
-            return;
-        }
-
-        $period = GslPricePeriod::findForDate($model->work_date);
-        if (!$period) {
-            return;
-        }
-
-        $discount = GslPriceDiscount::findOne([
-            'price_period_id' => $period->id,
-            'company_id' => $model->company_id,
-        ]);
-        $discountPrice = $discount ? (float) $discount->discount_price : (float) $period->list_price;
-
-        $model->discount_price = FillAmountCalculator::roundPrice($discountPrice);
-        $model->amount_due = FillAmountCalculator::calcAmountDue((float) $model->liters, $discountPrice);
     }
 
     protected function findModel(int $id): GslSwipe

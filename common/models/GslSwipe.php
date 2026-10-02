@@ -30,7 +30,7 @@ class GslSwipe extends ActiveRecord
             [['work_date', 'company_id', 'card_id'], 'required'],
             [['work_date'], 'date', 'format' => 'php:Y-m-d'],
             [['company_id', 'card_id'], 'integer'],
-            [['liters', 'discount_price', 'amount_due'], 'number'],
+            [['liters', 'owner_rate', 'owner_payout'], 'number'],
             [['swipe_receipt'], 'string', 'max' => 64],
             [['note'], 'string', 'max' => 255],
             ['liters', 'validatePositive'],
@@ -46,8 +46,8 @@ class GslSwipe extends ActiveRecord
             'company_id' => Yii::t('app', '公司'),
             'card_id' => Yii::t('app', '油卡'),
             'liters' => Yii::t('app', '升数'),
-            'discount_price' => Yii::t('app', '优惠价'),
-            'amount_due' => Yii::t('app', '应收金额'),
+            'owner_rate' => Yii::t('app', '卡费率'),
+            'owner_payout' => Yii::t('app', '应付持卡人'),
             'swipe_receipt' => Yii::t('app', '回单号'),
             'note' => Yii::t('app', '备注'),
         ];
@@ -119,6 +119,13 @@ class GslSwipe extends ActiveRecord
             return false;
         }
         $this->liters = FillAmountCalculator::truncLiters($this->liters);
+
+        // 刷卡金额口径：卡费率 × 升数 = 应付持卡人（费率来自所选卡，与卡类型解耦）
+        if ($this->card) {
+            $this->owner_rate = FillAmountCalculator::roundPrice((float) $this->card->owner_rate);
+        }
+        $this->owner_payout = FillAmountCalculator::calcOwnerPayout((float) $this->liters, (float) $this->owner_rate);
+
         return true;
     }
 }

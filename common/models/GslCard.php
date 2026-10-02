@@ -18,7 +18,7 @@ class GslCard extends ActiveRecord
             [['card_code'], 'string', 'max' => 32],
             [['real_card_no'], 'string', 'max' => 64],
             [['card_type_id', 'sort_order'], 'integer'],
-            [['monthly_quota'], 'number'],
+            [['monthly_quota', 'owner_rate'], 'number'],
             [['is_active'], 'boolean'],
             [['note'], 'string', 'max' => 255],
         ];
@@ -31,6 +31,7 @@ class GslCard extends ActiveRecord
             'card_type_id' => \Yii::t('app', '卡类型'),
             'real_card_no' => \Yii::t('app', '真实卡号'),
             'monthly_quota' => \Yii::t('app', '月配额'),
+            'owner_rate' => \Yii::t('app', '费率'),
             'sort_order' => \Yii::t('app', '排序'),
             'is_active' => \Yii::t('app', '状态'),
             'note' => \Yii::t('app', '备注'),

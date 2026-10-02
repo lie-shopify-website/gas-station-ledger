@@ -16,7 +16,7 @@ class GslSwipeSearch extends GslSwipe
         return [
             [['id', 'company_id', 'card_id', 'card_type_id'], 'integer'],
             [['work_date', 'swipe_receipt', 'note'], 'safe'],
-            [['liters', 'discount_price', 'amount_due'], 'number'],
+            [['liters', 'owner_rate', 'owner_payout'], 'number'],
         ];
     }
 
@@ -29,8 +29,8 @@ class GslSwipeSearch extends GslSwipe
             'card_id' => Yii::t('app', '油卡'),
             'card_type_id' => Yii::t('app', '卡类型'),
             'liters' => Yii::t('app', '升数'),
-            'discount_price' => Yii::t('app', '优惠价'),
-            'amount_due' => Yii::t('app', '应收金额'),
+            'owner_rate' => Yii::t('app', '卡费率'),
+            'owner_payout' => Yii::t('app', '应付持卡人'),
             'swipe_receipt' => Yii::t('app', '回单号'),
             'note' => Yii::t('app', '备注'),
         ];
@@ -71,7 +71,7 @@ class GslSwipeSearch extends GslSwipe
     }
 
     /**
-     * @return array{liters:float,amount_due:float,count:int}
+     * @return array{liters:float,owner_payout:float,count:int}
      */
     public function totals(ActiveQuery $query): array
     {
@@ -84,7 +84,7 @@ class GslSwipeSearch extends GslSwipe
         $row = $aggQuery
             ->select([
                 'liters' => 'ROUND(SUM([[liters]]), 3)',
-                'amount_due' => 'ROUND(SUM([[amount_due]]), 2)',
+                'owner_payout' => 'ROUND(SUM([[owner_payout]]), 2)',
                 'cnt' => 'COUNT(*)',
             ])
             ->asArray()
@@ -92,7 +92,7 @@ class GslSwipeSearch extends GslSwipe
 
         return [
             'liters' => (float) ($row['liters'] ?? 0),
-            'amount_due' => (float) ($row['amount_due'] ?? 0),
+            'owner_payout' => (float) ($row['owner_payout'] ?? 0),
             'count' => (int) ($row['cnt'] ?? 0),
         ];
     }

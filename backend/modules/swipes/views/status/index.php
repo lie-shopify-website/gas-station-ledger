@@ -174,7 +174,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <div class="row gsl-info-boxes">
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
 
                 <div class="info-box bg-info mb-0">
 
@@ -192,7 +192,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
 
                 <div class="info-box bg-success mb-0">
 
@@ -210,7 +210,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-3">
 
                 <div class="info-box bg-warning mb-0">
 
@@ -221,6 +221,26 @@ $this->params['breadcrumbs'][] = $this->title;
                         <span class="info-box-text"><?= Yii::t('app', '待刷升数') ?></span>
 
                         <span class="info-box-number"><?= number_format($status['left_liters'], 3) ?></span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="col-12 col-md-3">
+
+                <div class="info-box bg-danger mb-0">
+
+                    <span class="info-box-icon"><i class="fas fa-hand-holding-usd"></i></span>
+
+                    <div class="info-box-content">
+
+                        <span class="info-box-text"><?= Yii::t('app', '应付持卡人') ?></span>
+
+                        <span class="info-box-number"><?= number_format($status['owner_payout'], 2) ?></span>
 
                     </div>
 
@@ -273,6 +293,56 @@ $this->params['breadcrumbs'][] = $this->title;
                     <td class="text-right"><?= number_format($type['quota'], 3) ?></td>
 
                     <td class="text-right"><?= number_format($type['used'], 3) ?></td>
+
+                </tr>
+
+                <?php endforeach; ?>
+
+                <?php endif; ?>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <h5 class="mt-3"><?= Yii::t('app', '按费率汇总') ?></h5>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-striped table-sm mb-0">
+
+                <thead>
+
+                <tr>
+
+                    <th class="text-right"><?= Yii::t('app', '费率') ?></th>
+
+                    <th class="text-right"><?= Yii::t('app', '已刷升数') ?></th>
+
+                    <th class="text-right"><?= Yii::t('app', '应付持卡人') ?></th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <?php if (empty($status['rates'])): ?>
+
+                <tr><td colspan="3" class="text-center text-muted"><?= Yii::t('app', '暂无刷卡记录') ?></td></tr>
+
+                <?php else: ?>
+
+                <?php foreach ($status['rates'] as $rate): ?>
+
+                <tr>
+
+                    <td class="text-right"><?= number_format($rate['rate'], 2) ?></td>
+
+                    <td class="text-right"><?= number_format($rate['liters'], 3) ?></td>
+
+                    <td class="text-right"><?= number_format($rate['payout'], 2) ?></td>
 
                 </tr>
 

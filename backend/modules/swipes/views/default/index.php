@@ -3,7 +3,7 @@
 /** @var yii\web\View $this */
 /** @var backend\modules\swipes\models\GslSwipeSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
-/** @var array{liters:float,amount_due:float,count:int} $totals */
+/** @var array{liters:float,owner_payout:float,count:int} $totals */
 /** @var bool $canWrite */
 
 use common\models\GslCard;
@@ -65,18 +65,18 @@ $this->params['breadcrumbs'][] = $this->title;
                         'footer' => Yii::$app->formatter->asDecimal($totals['liters'], 3),
                     ],
                     [
-                        'attribute' => 'discount_price',
+                        'attribute' => 'owner_rate',
                         'contentOptions' => ['class' => 'text-right'],
                         'filter' => false,
                         'format' => ['decimal', 2],
                     ],
                     [
-                        'attribute' => 'amount_due',
+                        'attribute' => 'owner_payout',
                         'contentOptions' => ['class' => 'text-right'],
                         'footerOptions' => ['class' => 'text-right'],
                         'filter' => false,
                         'format' => ['decimal', 2],
-                        'footer' => Yii::$app->formatter->asDecimal($totals['amount_due'], 2),
+                        'footer' => Yii::$app->formatter->asDecimal($totals['owner_payout'], 2),
                     ],
                     'swipe_receipt',
                     [

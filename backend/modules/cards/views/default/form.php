@@ -43,6 +43,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?= $form->field($model, 'monthly_quota')->textInput(['type' => 'number', 'step' => '0.001']) ?>
 
+        <?= $form->field($model, 'owner_rate')->textInput(['type' => 'number', 'step' => '0.01']) ?>
+
         <?= $form->field($model, 'sort_order')->textInput(['type' => 'number']) ?>
 
         <?= $form->field($model, 'is_active')->checkbox() ?>

@@ -291,6 +291,14 @@ return [
 
     '该卡当日已刷' => 'This Card Today',
 
+    '卡费率' => 'Card Rate',
+
+    '应付持卡人' => 'Owner Payout',
+
+    '费率' => 'Rate',
+
+    '按费率汇总' => 'By Owner Rate',
+
     '单次刷卡上限' => 'Max per Swipe',
 
     '单卡每日上限' => 'Max per Card per Day',
