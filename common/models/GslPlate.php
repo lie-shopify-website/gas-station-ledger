@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use Yii;
 use yii\db\ActiveRecord;
 
 class GslPlate extends ActiveRecord
@@ -17,6 +18,8 @@ class GslPlate extends ActiveRecord
             [['company_id', 'plate_no'], 'required'],
             [['company_id'], 'integer'],
             [['plate_no'], 'string', 'max' => 32],
+            [['plate_no'], 'unique', 'targetAttribute' => ['company_id', 'plate_no'],
+                'message' => Yii::t('app', '该公司下已存在此车牌。')],
             [['is_active'], 'boolean'],
         ];
     }

@@ -410,6 +410,8 @@ return [
 
     '车牌不存在。' => 'Plate not found.',
 
+    '该公司下已存在此车牌。' => 'This plate already exists under the company.',
+
 
 
     // Prices
