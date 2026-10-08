@@ -75,14 +75,25 @@ foreach ($periodsByMonth as $monthPeriods) {
         <?php if (empty($periodsByMonth) && empty($emptyFutureMonths)): ?>
         <p class="text-muted mb-0"><?= Yii::t('app', '{year} 年暂无价格时段', ['year' => $year]) ?></p>
         <?php else: ?>
+        <?php $currentMonth = substr($today, 0, 7); ?>
         <?php foreach ($periodsByMonth as $monthKey => $monthPeriods): ?>
         <?php
         [$y, $m] = explode('-', $monthKey);
         $canClearMonth = $canWrite && $monthKey >= $minGeneratableMonth;
+        $isCurrentMonth = ($monthKey === $currentMonth);
+        $bodyId = 'price-month-' . str_replace('-', '', $monthKey);
         ?>
         <div class="card card-outline card-primary mb-3">
             <div class="card-header">
-                <h3 class="card-title mb-0"><?= Html::encode(Yii::t('app', '{year} 年 {month} 月', ['year' => (int) $y, 'month' => (int) $m])) ?></h3>
+                <h3 class="card-title mb-0 price-month-toggle<?= $isCurrentMonth ? '' : ' collapsed' ?>"
+                    role="button"
+                    data-toggle="collapse"
+                    data-target="#<?= $bodyId ?>"
+                    aria-expanded="<?= $isCurrentMonth ? 'true' : 'false' ?>"
+                    aria-controls="<?= $bodyId ?>">
+                    <?= Html::encode(Yii::t('app', '{year} 年 {month} 月', ['year' => (int) $y, 'month' => (int) $m])) ?>
+                    <i class="fas fa-chevron-down ml-1"></i>
+                </h3>
                 <div class="card-tools">
                     <span class="badge badge-light"><?= Yii::t('app', '共 {count} 个时段', ['count' => count($monthPeriods)]) ?></span>
                     <?php if ($canClearMonth): ?>
@@ -99,28 +110,43 @@ foreach ($periodsByMonth as $monthPeriods) {
                     <?php endif; ?>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <?= $this->render('_period_table', [
-                    'monthPeriods' => $monthPeriods,
-                    'today' => $today,
-                    'activePeriodId' => $activePeriodId,
-                    'canWrite' => $canWrite,
-                ]) ?>
+            <div id="<?= $bodyId ?>" class="collapse<?= $isCurrentMonth ? ' show' : '' ?>">
+                <div class="card-body p-0">
+                    <?= $this->render('_period_table', [
+                        'monthPeriods' => $monthPeriods,
+                        'today' => $today,
+                        'activePeriodId' => $activePeriodId,
+                        'canWrite' => $canWrite,
+                    ]) ?>
+                </div>
             </div>
         </div>
         <?php endforeach; ?>
 
         <?php foreach ($emptyFutureMonths as $monthKey): ?>
-        <?php [$y, $m] = explode('-', $monthKey); ?>
+        <?php
+        [$y, $m] = explode('-', $monthKey);
+        $bodyId = 'price-month-' . str_replace('-', '', $monthKey);
+        ?>
         <div class="card card-outline card-secondary mb-3">
             <div class="card-header">
-                <h3 class="card-title mb-0"><?= Html::encode(Yii::t('app', '{year} 年 {month} 月', ['year' => (int) $y, 'month' => (int) $m])) ?></h3>
+                <h3 class="card-title mb-0 price-month-toggle collapsed"
+                    role="button"
+                    data-toggle="collapse"
+                    data-target="#<?= $bodyId ?>"
+                    aria-expanded="false"
+                    aria-controls="<?= $bodyId ?>">
+                    <?= Html::encode(Yii::t('app', '{year} 年 {month} 月', ['year' => (int) $y, 'month' => (int) $m])) ?>
+                    <i class="fas fa-chevron-down ml-1"></i>
+                </h3>
                 <div class="card-tools">
                     <span class="text-muted small"><?= Yii::t('app', '尚未生成') ?></span>
                 </div>
             </div>
-            <div class="card-body">
-                <p class="text-muted mb-0"><?= Yii::t('app', '该月暂无价格时段，可使用上方「生成时段」一键创建。') ?></p>
+            <div id="<?= $bodyId ?>" class="collapse">
+                <div class="card-body">
+                    <p class="text-muted mb-0"><?= Yii::t('app', '该月暂无价格时段，可使用上方「生成时段」一键创建。') ?></p>
+                </div>
             </div>
         </div>
         <?php endforeach; ?>
@@ -129,6 +155,12 @@ foreach ($periodsByMonth as $monthPeriods) {
 </div>
 
 <?php
+$this->registerCss(<<<'CSS'
+.price-month-toggle { cursor: pointer; user-select: none; }
+.price-month-toggle .fa-chevron-down { transition: transform .2s ease; }
+.price-month-toggle.collapsed .fa-chevron-down { transform: rotate(-90deg); }
+CSS
+);
 $js = <<<'JS'
 $('.toggle-price-discounts').on('click', function () {
     $($(this).data('target')).collapse('toggle');
