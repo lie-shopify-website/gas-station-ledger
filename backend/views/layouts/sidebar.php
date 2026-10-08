@@ -33,6 +33,7 @@ use yii\helpers\Url;
                     ['label' => Yii::t('app', '刷卡状态'), 'icon' => 'chart-pie', 'url' => ['/swipes/status/index']],
                     ['label' => Yii::t('app', '公司/车牌'), 'icon' => 'car', 'url' => ['/plates/default/index']],
                     ['label' => Yii::t('app', '价格管理'), 'icon' => 'tags', 'url' => ['/prices/default/index']],
+                    ['label' => Yii::t('app', '卡费率'), 'icon' => 'percent', 'url' => ['/rates/default/index']],
                     ['label' => Yii::t('app', '油卡管理'), 'icon' => 'id-card', 'url' => ['/cards/default/index']],
                     ['label' => Yii::t('app', '系统设置'), 'icon' => 'cog', 'url' => ['/settings/default/index'], 'visible' => Yii::$app->user->can('settings.write')],
                     ['label' => Yii::t('app', '用户管理'), 'icon' => 'users', 'url' => ['/user/default/index'], 'visible' => Yii::$app->user->can('users.manage')],

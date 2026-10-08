@@ -22,6 +22,7 @@ return [
         'fills' => ['class' => 'backend\modules\fills\Module'],
         'plates' => ['class' => 'backend\modules\plates\Module'],
         'prices' => ['class' => 'backend\modules\prices\Module'],
+        'rates' => ['class' => 'backend\modules\rates\Module'],
         'cards' => ['class' => 'backend\modules\cards\Module'],
         'settings' => ['class' => 'backend\modules\settings\Module'],
         'user' => ['class' => 'backend\modules\user\Module'],
