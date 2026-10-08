@@ -6,7 +6,6 @@ use backend\components\GslController;
 use backend\modules\swipes\models\GslSwipeSearch;
 use common\models\GslCard;
 use common\models\GslFill;
-use common\models\GslSetting;
 use common\models\GslSwipe;
 use common\services\FillAmountCalculator;
 use Yii;
@@ -76,7 +75,7 @@ class DefaultController extends GslController
     }
 
     /**
-     * 表单联动：按 (日期, 公司) 返回加油总额/已刷/待刷 + 所选卡费率 + 该卡当日已刷。
+     * 表单联动：按 (日期, 公司) 返回加油总额/已刷/待刷；按卡返回所属人、当期费率与可刷/已刷/剩余。
      */
     public function actionSummary()
     {
@@ -97,10 +96,11 @@ class DefaultController extends GslController
             'fill_liters' => 0.0,
             'swiped_liters' => 0.0,
             'left_liters' => 0.0,
-            'card_day_liters' => 0.0,
-            'card_day_limit' => (float) GslSetting::getValue('swipe_max_per_card_day', 500),
-            'per_time_limit' => (float) GslSetting::getValue('swipe_max_per_time', 250),
+            'card_owner_name' => '',
             'owner_rate' => null,
+            'card_quota' => 0.0,
+            'card_used' => 0.0,
+            'card_remaining' => 0.0,
         ];
 
         if ($date !== '' && $companyId > 0) {
@@ -116,17 +116,29 @@ class DefaultController extends GslController
             $result['left_liters'] = round($fill - $swiped, 3);
         }
 
-        if ($date !== '' && $cardId > 0) {
+        if ($cardId > 0) {
             $card = GslCard::findOne($cardId);
             if ($card) {
-                $result['owner_rate'] = FillAmountCalculator::roundPrice((float) $card->owner_rate);
-            }
+                $result['card_owner_name'] = (string) $card->owner_name;
+                $result['owner_rate'] = FillAmountCalculator::roundPrice($card->getCurrentRate($date ?: date('Y-m-d')));
 
-            $query = GslSwipe::find()->where(['card_id' => $cardId, 'work_date' => $date]);
-            if ($excludeId > 0) {
-                $query->andWhere(['<>', 'id', $excludeId]);
+                $monthStart = ($date !== '' ? substr($date, 0, 7) : date('Y-m')) . '-01';
+                $monthEnd = date('Y-m-t', strtotime($monthStart));
+                $query = GslSwipe::find()
+                    ->where(['card_id' => $cardId])
+                    ->andWhere(['between', 'work_date', $monthStart, $monthEnd]);
+                if ($excludeId > 0) {
+                    $query->andWhere(['<>', 'id', $excludeId]);
+                }
+
+                $used = (float) $query->sum('liters');
+                $quota = (float) $card->monthly_quota;
+
+                $result['card_quota'] = round($quota, 3);
+                $result['card_used'] = round($used, 3);
+                // 允许超刷：剩余可为负数
+                $result['card_remaining'] = round($quota - $used, 3);
             }
-            $result['card_day_liters'] = round((float) $query->sum('liters'), 3);
         }
 
         return $result;

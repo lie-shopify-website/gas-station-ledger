@@ -18,41 +18,64 @@ $searchableOptions = ['class' => 'form-control gsl-searchable-select'];
 $cardItems = ArrayHelper::map(
     GslCard::find()->where(['is_active' => 1])->orderBy('sort_order')->all(),
     'id',
-    fn($card) => $card->card_type_id && $card->cardType
-        ? $card->card_code . '（' . $card->cardType->name . '）'
-        : $card->card_code
+    function ($card) {
+        $parts = [];
+        if ($card->card_type_id && $card->cardType) {
+            $parts[] = $card->cardType->name;
+        }
+        if ($card->owner_name !== null && $card->owner_name !== '') {
+            $parts[] = $card->owner_name;
+        }
+
+        return $parts ? $card->card_code . '（' . implode(' / ', $parts) . '）' : $card->card_code;
+    }
 );
 ?>
 <?php $form = ActiveForm::begin(); ?>
 <div class="alert alert-info swipe-summary-panel" role="alert">
     <div class="row">
         <div class="col-md-3">
+            <span class="text-muted"><?= Yii::t('app', '卡所属人') ?></span>
+            <div><strong id="swipe-summary-owner">—</strong></div>
+        </div>
+        <div class="col-md-3">
+            <span class="text-muted"><?= Yii::t('app', '可刷升数') ?></span>
+            <div><strong id="swipe-summary-quota">0.000</strong> <?= Yii::t('app', '升') ?></div>
+        </div>
+        <div class="col-md-3">
+            <span class="text-muted"><?= Yii::t('app', '该卡本月已刷') ?></span>
+            <div><strong id="swipe-summary-card-used">0.000</strong> <?= Yii::t('app', '升') ?></div>
+        </div>
+        <div class="col-md-3">
+            <span class="text-muted"><?= Yii::t('app', '剩余（可为负）') ?></span>
+            <div><strong id="swipe-summary-card-remaining">0.000</strong> <?= Yii::t('app', '升') ?></div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-4">
             <span class="text-muted"><?= Yii::t('app', '加油升数') ?></span>
             <div><strong id="swipe-summary-fill">0.000</strong> <?= Yii::t('app', '升') ?></div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <span class="text-muted"><?= Yii::t('app', '已刷升数') ?></span>
             <div><strong id="swipe-summary-swiped">0.000</strong> <?= Yii::t('app', '升') ?></div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <span class="text-muted"><?= Yii::t('app', '待刷升数') ?></span>
             <div><strong id="swipe-summary-left">0.000</strong> <?= Yii::t('app', '升') ?></div>
         </div>
-        <div class="col-md-3">
-            <span class="text-muted"><?= Yii::t('app', '该卡当日已刷') ?></span>
-            <div><strong id="swipe-summary-card-used">0.000</strong> / <span id="swipe-summary-card-limit">0.000</span> <?= Yii::t('app', '升') ?></div>
-        </div>
     </div>
+    <div class="text-muted small mt-2"><?= Yii::t('app', '公司可留空（仅作筛选）；费率按刷卡日期自动取该卡当期费率，允许超刷。') ?></div>
 </div>
 <div class="row">
     <div class="col-md-4"><?= $form->field($model, 'work_date')->input('date') ?></div>
-    <div class="col-md-4"><?= $form->field($model, 'company_id')->dropDownList(
-        ArrayHelper::map(GslCompany::find()->where(['is_active' => 1])->orderBy('sort_order')->all(), 'id', 'name'),
-        $searchableOptions + ['prompt' => Yii::t('app', '选择公司')]
-    ) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'card_id')->dropDownList(
         $cardItems,
         $searchableOptions + ['prompt' => Yii::t('app', '选择油卡')]
+    ) ?></div>
+    <div class="col-md-4"><?= $form->field($model, 'company_id')->dropDownList(
+        ArrayHelper::map(GslCompany::find()->where(['is_active' => 1])->orderBy('sort_order')->all(), 'id', 'name'),
+        $searchableOptions + ['prompt' => Yii::t('app', '公司（可留空）')]
     ) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'liters')->textInput(['type' => 'number', 'step' => '0.001']) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'owner_rate')->textInput(['readonly' => true]) ?></div>
@@ -103,11 +126,18 @@ $js = <<<JS
         if (!data) {
             return;
         }
+        $('#swipe-summary-owner').text(data.card_owner_name || '—');
+        $('#swipe-summary-quota').text(fmt(data.card_quota));
+        $('#swipe-summary-card-used').text(fmt(data.card_used));
         $('#swipe-summary-fill').text(fmt(data.fill_liters));
         $('#swipe-summary-swiped').text(fmt(data.swiped_liters));
         $('#swipe-summary-left').text(fmt(data.left_liters));
-        $('#swipe-summary-card-used').text(fmt(data.card_day_liters));
-        $('#swipe-summary-card-limit').text(fmt(data.card_day_limit));
+
+        var remaining = parseFloat(data.card_remaining) || 0;
+        var \$remaining = $('#swipe-summary-card-remaining');
+        \$remaining.text(fmt(remaining));
+        \$remaining.toggleClass('text-danger', remaining < 0);
+
         if (data.owner_rate !== null && data.owner_rate !== undefined) {
             \$rate.val(fmt(data.owner_rate, 2));
         }

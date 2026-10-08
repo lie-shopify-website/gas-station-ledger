@@ -27,15 +27,13 @@ class GslSwipe extends ActiveRecord
     public function rules()
     {
         return [
-            [['work_date', 'company_id', 'card_id'], 'required'],
+            [['work_date', 'card_id'], 'required'],
             [['work_date'], 'date', 'format' => 'php:Y-m-d'],
             [['company_id', 'card_id'], 'integer'],
             [['liters', 'owner_rate', 'owner_payout'], 'number'],
             [['swipe_receipt'], 'string', 'max' => 64],
             [['note'], 'string', 'max' => 255],
             ['liters', 'validatePositive'],
-            ['liters', 'validateMaxPerTime'],
-            ['liters', 'validateMaxPerCardDay'],
         ];
     }
 
@@ -63,46 +61,6 @@ class GslSwipe extends ActiveRecord
         }
     }
 
-    public function validateMaxPerTime(string $attribute): void
-    {
-        $max = (float) GslSetting::getValue('swipe_max_per_time', 250);
-        if ($max <= 0 || $this->$attribute === null || $this->$attribute === '') {
-            return;
-        }
-        if ((float) $this->$attribute > $max) {
-            $this->addError($attribute, Yii::t('app', '单次刷卡不得超过 {max} 升。', ['max' => $max]));
-        }
-    }
-
-    public function validateMaxPerCardDay(string $attribute): void
-    {
-        if (!$this->card_id || !$this->work_date || $this->$attribute === null || $this->$attribute === '') {
-            return;
-        }
-
-        $max = (float) GslSetting::getValue('swipe_max_per_card_day', 500);
-        if ($max <= 0) {
-            return;
-        }
-
-        $query = static::find()->where([
-            'card_id' => $this->card_id,
-            'work_date' => $this->work_date,
-        ]);
-        if (!$this->isNewRecord) {
-            $query->andWhere(['<>', 'id', $this->id]);
-        }
-
-        $used = (float) $query->sum('liters');
-        $total = FillAmountCalculator::truncLiters($used + (float) $this->$attribute);
-        if ($total > $max) {
-            $this->addError($attribute, Yii::t('app', '该卡当日累计不得超过 {max} 升（已刷 {used} 升）。', [
-                'max' => $max,
-                'used' => $used,
-            ]));
-        }
-    }
-
     public function getCompany()
     {
         return $this->hasOne(GslCompany::class, ['id' => 'company_id']);
@@ -120,10 +78,16 @@ class GslSwipe extends ActiveRecord
         }
         $this->liters = FillAmountCalculator::truncLiters($this->liters);
 
-        // 刷卡金额口径：卡费率 × 升数 = 应付持卡人（费率来自所选卡，与卡类型解耦）
-        if ($this->card) {
-            $this->owner_rate = FillAmountCalculator::roundPrice((float) $this->card->owner_rate);
+        // 刷卡金额口径：按刷卡日期取该卡当期费率（费率表），无记录时回退到卡上默认费率。
+        // 费率与卡类型解耦；允许超刷，不做升数上限拦截。
+        $rate = null;
+        if ($this->card_id) {
+            $rate = GslCardRate::resolveRate((int) $this->card_id, (string) $this->work_date);
+            if ($rate === null && $this->card) {
+                $rate = (float) $this->card->owner_rate;
+            }
         }
+        $this->owner_rate = FillAmountCalculator::roundPrice((float) $rate);
         $this->owner_payout = FillAmountCalculator::calcOwnerPayout((float) $this->liters, (float) $this->owner_rate);
 
         return true;
