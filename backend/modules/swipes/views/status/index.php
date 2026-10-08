@@ -34,7 +34,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <th><?= Yii::t('app', '油卡') ?></th>
 
-                <th class="text-right"><?= Yii::t('app', '月配额') ?></th>
+                <th class="text-right"><?= Yii::t('app', '可刷升数') ?></th>
 
                 <th class="text-right"><?= Yii::t('app', '已用') ?></th>
 
@@ -266,7 +266,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     <th class="text-right"><?= Yii::t('app', '卡数') ?></th>
 
-                    <th class="text-right"><?= Yii::t('app', '月配额') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '可刷升数') ?></th>
 
                     <th class="text-right"><?= Yii::t('app', '已刷升数') ?></th>
 
