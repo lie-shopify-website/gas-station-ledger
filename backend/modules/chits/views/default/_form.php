@@ -3,6 +3,8 @@
 /** @var yii\web\View $this */
 /** @var common\models\GslChit $model */
 
+use common\models\GslChit;
+use common\models\GslChitCustomer;
 use common\models\GslCounter;
 use hail812\adminlte3\assets\AdminLteAsset;
 use yii\helpers\Html;
@@ -24,7 +26,12 @@ $searchableOptions = ['class' => 'form-control gsl-searchable-select'];
         GslCounter::options(),
         $searchableOptions + ['prompt' => Yii::t('app', '选择柜台')]
     ) ?></div>
-    <div class="col-md-4"><?= $form->field($model, 'operator_no')->textInput(['maxlength' => true]) ?></div>
+    <div class="col-md-4"><?= $form->field($model, 'operator_no')->dropDownList(GslCounter::posNoOptions(), ['prompt' => '']) ?></div>
+    <div class="col-md-4"><?= $form->field($model, 'customer_id')->dropDownList(
+        GslChitCustomer::options(),
+        $searchableOptions + ['prompt' => Yii::t('app', '选择油票客户')]
+    ) ?></div>
+    <div class="col-md-4"><?= $form->field($model, 'oil_type')->dropDownList(GslChit::oilTypeOptions(), ['prompt' => '']) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'amount')->textInput(['type' => 'number', 'step' => '0.01']) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'chit_stub_no')->textInput(['maxlength' => true]) ?></div>
     <div class="col-md-4">
@@ -120,6 +127,7 @@ $js = <<<JS
 
     if (window.GslSearchableSelect) {
         GslSearchableSelect.bind('#gslchit-counter_id', emptyText);
+        GslSearchableSelect.bind('#gslchit-customer_id', emptyText);
     }
 })();
 JS;

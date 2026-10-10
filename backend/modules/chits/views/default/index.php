@@ -4,8 +4,11 @@
 /** @var backend\modules\chits\models\GslChitSearch $searchModel */
 /** @var yii\data\ActiveDataProvider $dataProvider */
 /** @var array{amount:float,count:int} $totals */
+/** @var array{rows:array<int,array{name:string,deposit:float,used:float,remaining:float}>,deposit:float,used:float,remaining:float} $customerBalances */
 /** @var bool $canWrite */
 
+use common\models\GslChit;
+use common\models\GslChitCustomer;
 use common\models\GslCounter;
 use yii\grid\GridView;
 use yii\grid\SerialColumn;
@@ -14,6 +17,45 @@ use yii\helpers\Html;
 $this->title = Yii::t('app', '油票登记');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+<?php if (!empty($customerBalances['rows'])): ?>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><?= Yii::t('app', '客户预存余额') ?></h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive table-responsive-wide">
+            <table class="table table-bordered table-striped table-sm">
+                <thead>
+                <tr>
+                    <th><?= Yii::t('app', '客户名称') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '预存金额') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '已用金额') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '剩余金额') ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($customerBalances['rows'] as $row): ?>
+                <tr>
+                    <td><?= Html::encode($row['name']) ?></td>
+                    <td class="text-right"><?= Yii::$app->formatter->asDecimal($row['deposit'], 2) ?></td>
+                    <td class="text-right"><?= Yii::$app->formatter->asDecimal($row['used'], 2) ?></td>
+                    <td class="text-right <?= $row['remaining'] < 0 ? 'text-danger' : '' ?>"><?= Yii::$app->formatter->asDecimal($row['remaining'], 2) ?></td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+                <tfoot>
+                <tr class="font-weight-bold chit-summary-row">
+                    <td><?= Yii::t('app', '合计') ?></td>
+                    <td class="text-right"><?= Yii::$app->formatter->asDecimal($customerBalances['deposit'], 2) ?></td>
+                    <td class="text-right"><?= Yii::$app->formatter->asDecimal($customerBalances['used'], 2) ?></td>
+                    <td class="text-right"><?= Yii::$app->formatter->asDecimal($customerBalances['remaining'], 2) ?></td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 <div class="card">
     <div class="card-header">
         <h3 class="card-title"><?= Html::encode($this->title) ?></h3>
@@ -42,6 +84,15 @@ $this->params['breadcrumbs'][] = $this->title;
                         'attribute' => 'counter_id',
                         'value' => fn($model) => $model->counter ? $model->counter->getLabel() : '—',
                         'filter' => GslCounter::options(),
+                    ],
+                    [
+                        'attribute' => 'customer_id',
+                        'value' => fn($model) => $model->customer ? $model->customer->name : '—',
+                        'filter' => GslChitCustomer::options(),
+                    ],
+                    [
+                        'attribute' => 'oil_type',
+                        'filter' => GslChit::oilTypeOptions(),
                     ],
                     'operator_no',
                     [

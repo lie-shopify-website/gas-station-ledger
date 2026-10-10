@@ -3,6 +3,7 @@
 /** @var yii\web\View $this */
 /** @var common\models\GslCounter $model */
 
+use common\models\GslCounter;
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
@@ -17,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="row">
             <div class="col-md-3"><?= $form->field($model, 'code')->textInput(['maxlength' => true]) ?></div>
             <div class="col-md-3"><?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?></div>
-            <div class="col-md-3"><?= $form->field($model, 'operator_no')->textInput(['maxlength' => true]) ?></div>
+            <div class="col-md-3"><?= $form->field($model, 'operator_no')->dropDownList(GslCounter::posNoOptions(), ['prompt' => '']) ?></div>
             <div class="col-md-3"><?= $form->field($model, 'sort_order')->textInput(['type' => 'number']) ?></div>
         </div>
         <div class="form-group">

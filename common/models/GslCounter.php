@@ -7,6 +7,19 @@ use yii\db\ActiveRecord;
 
 class GslCounter extends ActiveRecord
 {
+    /**
+     * Pos No. 取值：仅 1、2
+     */
+    public const POS_NO_OPTIONS = ['1' => '1', '2' => '2'];
+
+    /**
+     * @return array<string,string> Pos No. 下拉选项
+     */
+    public static function posNoOptions(): array
+    {
+        return self::POS_NO_OPTIONS;
+    }
+
     public static function tableName()
     {
         return '{{%gsl_counter}}';
@@ -17,7 +30,8 @@ class GslCounter extends ActiveRecord
         return [
             [['code'], 'required'],
             [['code'], 'string', 'length' => 4],
-            [['name', 'operator_no'], 'string', 'max' => 32],
+            [['name'], 'string', 'max' => 32],
+            [['operator_no'], 'in', 'range' => array_keys(self::POS_NO_OPTIONS)],
             [['sort_order'], 'integer'],
         ];
     }

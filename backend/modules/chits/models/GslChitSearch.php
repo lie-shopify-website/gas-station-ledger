@@ -12,8 +12,8 @@ class GslChitSearch extends GslChit
     public function rules()
     {
         return [
-            [['id', 'counter_id'], 'integer'],
-            [['work_date', 'operator_no', 'chit_stub_no', 'receipt_no'], 'safe'],
+            [['id', 'counter_id', 'customer_id'], 'integer'],
+            [['work_date', 'operator_no', 'oil_type', 'chit_stub_no', 'receipt_no'], 'safe'],
             [['amount'], 'number'],
         ];
     }
@@ -24,6 +24,8 @@ class GslChitSearch extends GslChit
             'id' => 'ID',
             'work_date' => Yii::t('app', '日期'),
             'counter_id' => Yii::t('app', '柜台'),
+            'customer_id' => Yii::t('app', '油票客户'),
+            'oil_type' => Yii::t('app', '油类型'),
             'operator_no' => Yii::t('app', '柜员号'),
             'amount' => Yii::t('app', '金额'),
             'chit_stub_no' => Yii::t('app', '票根号'),
@@ -33,7 +35,7 @@ class GslChitSearch extends GslChit
 
     public function search(array $params): ActiveDataProvider
     {
-        $query = GslChit::find()->with(['counter']);
+        $query = GslChit::find()->with(['counter', 'customer']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -51,6 +53,8 @@ class GslChitSearch extends GslChit
             'id' => $this->id,
             'work_date' => $this->work_date,
             'counter_id' => $this->counter_id,
+            'customer_id' => $this->customer_id,
+            'oil_type' => $this->oil_type,
         ]);
 
         $query->andFilterWhere(['like', 'operator_no', $this->operator_no])

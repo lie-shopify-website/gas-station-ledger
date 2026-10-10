@@ -595,7 +595,7 @@ return [
 
     '确定删除此油票？' => 'Delete this chit record?',
 
-    '柜员号' => 'Operator No.',
+    '柜员号' => 'Pos No.',
 
     '金额' => 'Amount',
 
@@ -624,6 +624,44 @@ return [
     '该柜台已有油票记录，无法删除。' => 'This counter has chit records and cannot be deleted.',
 
     '暂无柜台' => 'No counters yet',
+
+    '油票客户' => 'Chit Customers',
+
+    '客户名称' => 'Customer Name',
+
+    '预存金额' => 'Deposit Amount',
+
+    '启用状态' => 'Status',
+
+    '启用' => 'Active',
+
+    '停用' => 'Inactive',
+
+    '油类型' => 'Oil Type',
+
+    '选择油票客户' => 'Select customer',
+
+    '新增油票客户' => 'Add Chit Customer',
+
+    '编辑油票客户 #{id}' => 'Edit Chit Customer #{id}',
+
+    '油票客户已创建。' => 'Chit customer created.',
+
+    '油票客户已更新。' => 'Chit customer updated.',
+
+    '油票客户已删除。' => 'Chit customer deleted.',
+
+    '油票客户不存在。' => 'Chit customer not found.',
+
+    '确定删除此油票客户？' => 'Delete this chit customer?',
+
+    '暂无油票客户' => 'No chit customers yet',
+
+    '客户预存余额' => 'Customer Prepaid Balance',
+
+    '已用金额' => 'Used Amount',
+
+    '剩余金额' => 'Remaining Amount',
 
 ];
 

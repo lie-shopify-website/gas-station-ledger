@@ -5,6 +5,7 @@ namespace backend\modules\chits\controllers;
 use backend\components\GslController;
 use backend\modules\chits\models\GslChitSearch;
 use common\models\GslChit;
+use common\models\GslChitCustomer;
 use common\models\GslFill;
 use Yii;
 use yii\web\NotFoundHttpException;
@@ -24,8 +25,52 @@ class DefaultController extends GslController
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
             'totals' => $totals,
+            'customerBalances' => $this->customerBalances(),
             'canWrite' => $this->canWrite('chits.write'),
         ]);
+    }
+
+    /**
+     * 按客户汇总预存金额、已用金额（该客户油票记录金额合计）与剩余金额。
+     *
+     * @return array{rows:array<int,array{name:string,deposit:float,used:float,remaining:float}>,deposit:float,used:float,remaining:float}
+     */
+    protected function customerBalances(): array
+    {
+        $usedByCustomer = GslChit::find()
+            ->select(['customer_id', 'used' => 'ROUND(SUM([[amount]]), 2)'])
+            ->where(['not', ['customer_id' => null]])
+            ->groupBy('customer_id')
+            ->asArray()
+            ->all();
+
+        $usedMap = [];
+        foreach ($usedByCustomer as $row) {
+            $usedMap[(int) $row['customer_id']] = (float) $row['used'];
+        }
+
+        $rows = [];
+        $totalDeposit = 0.0;
+        $totalUsed = 0.0;
+        foreach (GslChitCustomer::find()->orderBy(['name' => SORT_ASC])->all() as $customer) {
+            $deposit = (float) $customer->deposit_amount;
+            $used = $usedMap[$customer->id] ?? 0.0;
+            $rows[] = [
+                'name' => $customer->name,
+                'deposit' => $deposit,
+                'used' => $used,
+                'remaining' => $deposit - $used,
+            ];
+            $totalDeposit += $deposit;
+            $totalUsed += $used;
+        }
+
+        return [
+            'rows' => $rows,
+            'deposit' => $totalDeposit,
+            'used' => $totalUsed,
+            'remaining' => $totalDeposit - $totalUsed,
+        ];
     }
 
     public function actionCreate()

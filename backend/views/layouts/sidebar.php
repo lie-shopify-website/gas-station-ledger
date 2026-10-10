@@ -32,6 +32,7 @@ use yii\helpers\Url;
                     ['label' => Yii::t('app', '刷卡记录'), 'icon' => 'credit-card', 'url' => ['/swipes/default/index'], 'visible' => Yii::$app->user->can('swipes.view')],
                     ['label' => Yii::t('app', '刷卡状态'), 'icon' => 'chart-pie', 'url' => ['/swipes/status/index'], 'visible' => Yii::$app->user->can('swipes.view')],
                     ['label' => Yii::t('app', '油票登记'), 'icon' => 'receipt', 'url' => ['/chits/default/index'], 'visible' => Yii::$app->user->can('chits.view')],
+                    ['label' => Yii::t('app', '油票客户'), 'icon' => 'user-tag', 'url' => ['/chitcustomers/default/index'], 'visible' => Yii::$app->user->can('chitcustomers.view')],
                     ['label' => Yii::t('app', '公司/车牌'), 'icon' => 'car', 'url' => ['/plates/default/index'], 'visible' => Yii::$app->user->can('plates.view')],
                     ['label' => Yii::t('app', '柜台管理'), 'icon' => 'store', 'url' => ['/counters/default/index'], 'visible' => Yii::$app->user->can('counters.view')],
                     ['label' => Yii::t('app', '价格管理'), 'icon' => 'tags', 'url' => ['/prices/default/index'], 'visible' => Yii::$app->user->can('prices.view')],

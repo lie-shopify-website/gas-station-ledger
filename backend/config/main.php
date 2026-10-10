@@ -20,6 +20,7 @@ return [
         'counter' => ['class' => 'backend\modules\counter\Module'],
         'swipes' => ['class' => 'backend\modules\swipes\Module'],
         'chits' => ['class' => 'backend\modules\chits\Module'],
+        'chitcustomers' => ['class' => 'backend\modules\chitcustomers\Module'],
         'fills' => ['class' => 'backend\modules\fills\Module'],
         'plates' => ['class' => 'backend\modules\plates\Module'],
         'counters' => ['class' => 'backend\modules\counters\Module'],
