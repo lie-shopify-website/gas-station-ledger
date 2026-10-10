@@ -14,9 +14,11 @@ $identity = Yii::$app->user->identity;
                 <i class="fas fa-bars"></i> <?= Yii::t('app', '导航') ?>
             </a>
         </li>
+        <?php if (Yii::$app->user->can('dashboard.view')): ?>
         <li class="nav-item d-none d-sm-inline-block">
             <a href="<?= Url::to(['/dashboard/default/index']) ?>" class="nav-link"><?= Yii::t('app', '首页') ?></a>
         </li>
+        <?php endif; ?>
     </ul>
 
     <ul class="navbar-nav ml-auto">

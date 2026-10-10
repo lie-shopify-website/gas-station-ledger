@@ -51,20 +51,22 @@ class SiteController extends Controller
 
     public function actionIndex()
     {
-        return $this->redirect(['/dashboard/default/index']);
+        return $this->redirect($this->landingRoute());
     }
 
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
+            return $this->redirect($this->landingRoute());
         }
 
         $this->layout = 'main-login';
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            return $this->goBack();
+            return Yii::$app->user->can('dashboard.view')
+                ? $this->goBack()
+                : $this->redirect($this->landingRoute());
         }
 
         $model->password = '';
@@ -72,6 +74,21 @@ class SiteController extends Controller
         return $this->render('login', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * 登录落地页：有仪表盘权限回仪表盘，否则回第一个可访问页面（员工账号→油票登记）。
+     */
+    protected function landingRoute(): array
+    {
+        if (Yii::$app->user->can('dashboard.view')) {
+            return ['/dashboard/default/index'];
+        }
+        if (Yii::$app->user->can('chits.view')) {
+            return ['/chits/default/index'];
+        }
+
+        return ['/site/login'];
     }
 
     public function actionLogout()

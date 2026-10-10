@@ -2,6 +2,7 @@
 
 namespace common\models;
 
+use Yii;
 use yii\db\ActiveRecord;
 
 class GslCounter extends ActiveRecord
@@ -16,8 +17,40 @@ class GslCounter extends ActiveRecord
         return [
             [['code'], 'required'],
             [['code'], 'string', 'length' => 4],
+            [['name', 'operator_no'], 'string', 'max' => 32],
             [['sort_order'], 'integer'],
         ];
+    }
+
+    public function attributeLabels()
+    {
+        return [
+            'code' => Yii::t('app', '代号'),
+            'name' => Yii::t('app', '柜台名称'),
+            'operator_no' => Yii::t('app', '柜员号'),
+            'sort_order' => Yii::t('app', '排序'),
+        ];
+    }
+
+    /**
+     * 柜台显示名：优先 name，未维护时回退到 code。
+     */
+    public function getLabel(): string
+    {
+        return $this->name !== null && $this->name !== '' ? $this->name : $this->code;
+    }
+
+    /**
+     * @return array<int,string> id => 显示名
+     */
+    public static function options(): array
+    {
+        $items = [];
+        foreach (static::find()->orderBy(['sort_order' => SORT_ASC, 'code' => SORT_ASC])->all() as $counter) {
+            $items[$counter->id] = $counter->getLabel();
+        }
+
+        return $items;
     }
 
     public static function findByCode(string $code): ?self

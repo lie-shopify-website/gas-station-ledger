@@ -575,5 +575,55 @@ return [
 
     '折扣价不存在。' => 'Discount price not found.',
 
+
+
+    // Chits & Counters
+
+    '油票登记' => 'Chit Records',
+
+    '柜台管理' => 'Counter Management',
+
+    '新增油票' => 'Add Chit',
+
+    '编辑油票 #{id}' => 'Edit Chit #{id}',
+
+    '油票已创建。' => 'Chit record created.',
+
+    '油票已更新。' => 'Chit record updated.',
+
+    '油票已删除。' => 'Chit record deleted.',
+
+    '确定删除此油票？' => 'Delete this chit record?',
+
+    '柜员号' => 'Operator No.',
+
+    '金额' => 'Amount',
+
+    '票根号' => 'Chit Stub No.',
+
+    'Receipt 号' => 'Receipt No.',
+
+    '代号' => 'Code',
+
+    '柜台名称' => 'Counter Name',
+
+    '新增柜台' => 'Add Counter',
+
+    '编辑柜台 #{id}' => 'Edit Counter #{id}',
+
+    '柜台已创建。' => 'Counter created.',
+
+    '柜台已更新。' => 'Counter updated.',
+
+    '柜台已删除。' => 'Counter deleted.',
+
+    '柜台不存在。' => 'Counter not found.',
+
+    '确定删除此柜台？' => 'Delete this counter?',
+
+    '该柜台已有油票记录，无法删除。' => 'This counter has chit records and cannot be deleted.',
+
+    '暂无柜台' => 'No counters yet',
+
 ];
 
