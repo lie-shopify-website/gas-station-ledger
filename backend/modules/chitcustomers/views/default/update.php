@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="row">
             <div class="col-md-4"><?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?></div>
             <div class="col-md-4"><?= $form->field($model, 'deposit_amount')->textInput(['type' => 'number', 'step' => '0.01']) ?></div>
-            <div class="col-md-4"><?= $form->field($model, 'is_active')->dropDownList(GslChitCustomer::activeOptions(), ['prompt' => false]) ?></div>
+            <div class="col-md-4"><?= $form->field($model, 'is_active')->dropDownList(GslChitCustomer::activeOptions()) ?></div>
         </div>
         <div class="form-group">
             <?= Html::submitButton(Yii::t('app', '保存'), ['class' => 'btn btn-success']) ?>
