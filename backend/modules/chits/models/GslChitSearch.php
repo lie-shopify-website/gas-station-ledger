@@ -29,7 +29,7 @@ class GslChitSearch extends GslChit
             'operator_no' => Yii::t('app', '柜员号'),
             'amount' => Yii::t('app', '金额'),
             'chit_stub_no' => Yii::t('app', '票根号'),
-            'receipt_no' => Yii::t('app', 'Receipt 号'),
+            'receipt_no' => Yii::t('app', '收据号'),
         ];
     }
 

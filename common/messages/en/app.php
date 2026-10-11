@@ -601,8 +601,6 @@ return [
 
     '票根号' => 'Chit Stub No.',
 
-    'Receipt 号' => 'Receipt No.',
-
     '代号' => 'Code',
 
     '柜台名称' => 'Counter Name',
