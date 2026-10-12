@@ -81,7 +81,7 @@
             if (value === '') {
                 return;
             }
-            if (query && text.toUpperCase().indexOf(query) !== 0) {
+            if (query && text.toUpperCase().indexOf(query) === -1) {
                 return;
             }
             items.push({ value: value, text: text });
