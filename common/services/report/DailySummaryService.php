@@ -69,8 +69,7 @@ class DailySummaryService
      * Daily profit: gross = amount_due + cost (cost is negative),
      * card owner payout from swipes (split by star/sub card type), net = gross - payout.
      *
-     * 某类型应付为 0 视为该类型刷卡数据未录入，该类型纯利记 0；
-     * 类型纯利中的毛利部分按「该类型刷卡升数 / 总刷卡升数」占比分摊。
+     * 类型纯利 = 毛利 ×（该类型刷卡升数 / 总刷卡升数）− 该类型应付；总纯利 = 毛利 − 总应付。
      */
     public function getProfit(string $workDate, array $companyRows, array $totals): array
     {
@@ -115,7 +114,7 @@ class DailySummaryService
             'sub_cnt' => (int) ($typeAgg['sub']['cnt'] ?? 0),
             'star_liters' => round((float) ($typeAgg['star']['liters'] ?? 0), 3),
             'sub_liters' => round((float) ($typeAgg['sub']['liters'] ?? 0), 3),
-            'net' => round($starNet + $subNet, 2),
+            'net' => round($grossTotal - $ownerPayout, 2),
             'star_net' => $starNet,
             'sub_net' => $subNet,
             'swipe_liters' => $swipeLiters,
@@ -127,8 +126,8 @@ class DailySummaryService
      * Per-day profit for a date range (used by weekly/monthly views).
      *
      * 卡主应付与纯利按卡类型（star/sub）拆分：
-     * - 某类型应付为 0 视为该类型刷卡数据未录入，该类型纯利记 0；
-     * - 类型纯利中的毛利部分按「该类型刷卡升数 / 总刷卡升数」占比分摊。
+     * - 类型纯利 = 毛利 ×（该类型刷卡升数 / 总刷卡升数）− 该类型应付；
+     * - 总纯利 = 毛利 − 总应付（应付为 0 时即等于毛利）。
      *
      * @return array{date_from:string,date_to:string,days:array,totals:array}
      */
@@ -187,7 +186,7 @@ class DailySummaryService
             $subPayout = round((float) ($type['sub']['payout'] ?? 0), 2);
             $starNet = $this->splitTypeNet($gross, $starPayout, (float) ($type['star']['liters'] ?? 0), $swipeLiters);
             $subNet = $this->splitTypeNet($gross, $subPayout, (float) ($type['sub']['liters'] ?? 0), $swipeLiters);
-            $net = round($starNet + $subNet, 2);
+            $net = round($gross - $payout, 2);
 
             $days[] = [
                 'work_date' => $date,
@@ -227,7 +226,7 @@ class DailySummaryService
             $this->sumTypeLiters($typeAgg, 'sub'),
             round($totals['swipe_liters'], 3)
         );
-        $totals['net'] = round($totals['star_net'] + $totals['sub_net'], 2);
+        $totals['net'] = round($totals['gross'] - $totals['owner_payout'], 2);
         $totals['swipe_liters'] = round($totals['swipe_liters'], 3);
 
         return [
@@ -284,14 +283,10 @@ class DailySummaryService
     }
 
     /**
-     * 类型纯利 = 毛利 × 类型升数占比 − 该类型应付；应付为 0（数据未录入）时纯利记 0。
+     * 类型纯利 = 毛利 × 类型升数占比 − 该类型应付。
      */
     private function splitTypeNet(float $gross, float $payout, float $typeLiters, float $totalLiters): float
     {
-        if ($payout == 0.0) {
-            return 0.0;
-        }
-
         $share = $totalLiters > 0 ? $typeLiters / $totalLiters : 0.0;
         $net = round($gross * $share - $payout, 2);
 
