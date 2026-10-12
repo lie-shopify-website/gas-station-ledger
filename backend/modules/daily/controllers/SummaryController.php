@@ -44,9 +44,11 @@ class SummaryController extends GslController
 
         $service = new DailySummaryService();
         $rangeSummary = $service->getProfitForRange($from, $to);
+        $companyRange = $service->getCompanyForRange($from, $to);
 
         return $this->render('range', [
             'rangeSummary' => $rangeSummary,
+            'companyRange' => $companyRange,
             'mode' => 'week',
         ]);
     }
@@ -70,10 +72,49 @@ class SummaryController extends GslController
 
         $service = new DailySummaryService();
         $rangeSummary = $service->getProfitForRange($from, $to);
+        $companyRange = $service->getCompanyForRange($from, $to);
 
         return $this->render('range', [
             'rangeSummary' => $rangeSummary,
+            'companyRange' => $companyRange,
             'mode' => 'month',
+        ]);
+    }
+
+    public function actionCompanyDetails(int $company_id)
+    {
+        $this->checkPermission('daily.view');
+
+        $today = date('Y-m-d');
+        $ts = strtotime($today);
+        $dateFrom = Yii::$app->request->get('date_from', date('Y-m-01', $ts));
+        $dateTo = Yii::$app->request->get('date_to', date('Y-m-t', $ts));
+
+        $service = new DailySummaryService();
+        $daily = $service->getDailyCompanyForRange($dateFrom, $dateTo);
+
+        $days = [];
+        foreach ($daily['days'] as $day) {
+            foreach ($day['companies'] as $company) {
+                if ((int) $company['company_id'] === $company_id) {
+                    $days[] = [
+                        'work_date' => $day['work_date'],
+                        'count' => $company['count'],
+                        'liters' => $company['liters'],
+                        'amount_due' => $company['amount_due'],
+                    ];
+                    break;
+                }
+            }
+        }
+
+        return $this->renderPartial('_company_details', [
+            'days' => $days,
+            'totals' => [
+                'count' => array_sum(array_column($days, 'count')),
+                'liters' => round(array_sum(array_column($days, 'liters')), 3),
+                'amount_due' => round(array_sum(array_column($days, 'amount_due')), 2),
+            ],
         ]);
     }
 

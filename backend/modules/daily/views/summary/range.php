@@ -5,6 +5,7 @@
 /** @var string $mode — 'week' or 'month' */
 
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 
 $titleMap = ['week' => Yii::t('app', '周汇总'), 'month' => Yii::t('app', '月汇总')];
@@ -72,6 +73,57 @@ $rangeLabel = $rangeSummary['date_from'] . ' ~ ' . $rangeSummary['date_to'];
                     <td class="text-right text-success"><?= number_format($rangeSummary['totals']['net'], 2) ?></td>
                     <td class="text-right"><?= number_format($rangeSummary['totals']['swipe_liters'], 3) ?></td>
                     <td class="text-right"><?= (int) $rangeSummary['totals']['swipe_count'] ?></td>
+                </tr>
+                </tfoot>
+                <?php endif; ?>
+            </table>
+        </div>
+
+        <h5 class="mt-4 mb-3"><?= Yii::t('app', '按公司') ?></h5>
+        <div class="table-responsive table-responsive-wide">
+            <table class="table table-bordered table-striped table-sm">
+                <thead>
+                <tr>
+                    <th><?= Yii::t('app', '公司') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '升数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '应收') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '笔数') ?></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php if (empty($companyRange['companies'])): ?>
+                    <tr><td colspan="5" class="text-center text-muted"><?= Yii::t('app', '暂无数据') ?></td></tr>
+                <?php else: ?>
+                    <?php foreach ($companyRange['companies'] as $company): ?>
+                    <tr>
+                        <td><?= Html::encode($company['company_name']) ?></td>
+                        <td class="text-right"><?= number_format($company['liters'], 3) ?></td>
+                        <td class="text-right"><?= number_format($company['amount_due'], 2) ?></td>
+                        <td class="text-right"><?= (int) $company['count'] ?></td>
+                        <td>
+                            <?= Html::button(Yii::t('app', '查看明细'), [
+                                'class' => 'btn btn-outline-secondary btn-xs btn-sm gsl-detail-modal-trigger',
+                                'data-url' => Url::to(['company-details', 'company_id' => $company['company_id'], 'date_from' => $rangeSummary['date_from'], 'date_to' => $rangeSummary['date_to']]),
+                                'data-title' => Yii::t('app', '{label} — {from} ~ {to} 每日汇总', [
+                                    'label' => $company['company_name'],
+                                    'from' => $rangeSummary['date_from'],
+                                    'to' => $rangeSummary['date_to'],
+                                ]),
+                            ]) ?>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+                <?php if (!empty($companyRange['companies'])): ?>
+                <tfoot>
+                <tr class="font-weight-bold">
+                    <td><?= Yii::t('app', '合计') ?></td>
+                    <td class="text-right"><?= number_format($companyRange['totals']['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($companyRange['totals']['amount_due'], 2) ?></td>
+                    <td class="text-right"><?= (int) $companyRange['totals']['count'] ?></td>
+                    <td></td>
                 </tr>
                 </tfoot>
                 <?php endif; ?>
