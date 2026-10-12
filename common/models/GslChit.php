@@ -14,7 +14,7 @@ class GslChit extends ActiveRecord
     public const OIL_TYPES = [
         'RON97',
         'RON95',
-        'E5 B12, B15 Diesel',
+        'E5 B10 B12 B15 Diesel',
         'E5 B7 Diesel',
     ];
 
