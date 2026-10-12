@@ -258,6 +258,17 @@ a.desc:after {
 
 .gsl-ss-item {
     cursor: pointer;
+    /* Keep options on a single line; truncate the tail with an ellipsis on narrow screens */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gsl-ss-input {
+    /* Selected value stays on one line; overflow shows an ellipsis so the card code remains visible */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .gsl-ss-item:hover,

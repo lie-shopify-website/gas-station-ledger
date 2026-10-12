@@ -19,15 +19,18 @@ $cardItems = ArrayHelper::map(
     GslCard::find()->where(['is_active' => 1])->orderBy('sort_order')->all(),
     'id',
     function ($card) {
-        $parts = [];
+        $parts = [$card->card_code];
         if ($card->card_type_id && $card->cardType) {
             $parts[] = $card->cardType->name;
         }
         if ($card->owner_name !== null && $card->owner_name !== '') {
             $parts[] = $card->owner_name;
         }
+        if ($card->real_card_no !== null && $card->real_card_no !== '') {
+            $parts[] = $card->real_card_no;
+        }
 
-        return $parts ? $card->card_code . '（' . implode(' / ', $parts) . '）' : $card->card_code;
+        return implode(' - ', $parts);
     }
 );
 ?>
