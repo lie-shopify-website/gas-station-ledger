@@ -206,26 +206,19 @@ class DailySummaryService
             $totals['owner_payout'] += $payout;
             $totals['star_payout'] += $starPayout;
             $totals['sub_payout'] += $subPayout;
+            $totals['star_net'] += $starNet;
+            $totals['sub_net'] += $subNet;
             $totals['swipe_liters'] += $swipeLiters;
             $totals['swipe_count'] += (int) ($swipe['cnt'] ?? 0);
         }
 
+        // 合计行的 Star/Sub 纯利 = 每日该列数值的累加（列汇总），非整行重算
         $totals['gross'] = round($totals['gross'], 2);
         $totals['owner_payout'] = round($totals['owner_payout'], 2);
         $totals['star_payout'] = round($totals['star_payout'], 2);
         $totals['sub_payout'] = round($totals['sub_payout'], 2);
-        $totals['star_net'] = $this->splitTypeNet(
-            $totals['gross'],
-            $totals['star_payout'],
-            $this->sumTypeLiters($typeAgg, 'star'),
-            round($totals['swipe_liters'], 3)
-        );
-        $totals['sub_net'] = $this->splitTypeNet(
-            $totals['gross'],
-            $totals['sub_payout'],
-            $this->sumTypeLiters($typeAgg, 'sub'),
-            round($totals['swipe_liters'], 3)
-        );
+        $totals['star_net'] = round($totals['star_net'], 2);
+        $totals['sub_net'] = round($totals['sub_net'], 2);
         $totals['net'] = round($totals['gross'] - $totals['owner_payout'], 2);
         $totals['swipe_liters'] = round($totals['swipe_liters'], 3);
 
@@ -270,16 +263,6 @@ class DailySummaryService
         }
 
         return $agg;
-    }
-
-    private function sumTypeLiters(array $typeAgg, string $typeCode): float
-    {
-        $liters = 0.0;
-        foreach ($typeAgg as $types) {
-            $liters += (float) ($types[$typeCode]['liters'] ?? 0);
-        }
-
-        return round($liters, 3);
     }
 
     /**
