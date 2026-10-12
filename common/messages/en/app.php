@@ -579,21 +579,29 @@ return [
 
     // Chits & Counters
 
-    '油票登记' => 'Chit Records',
+    '油票' => 'Petrol Chit',
+
+    '使用记录' => 'Record',
+
+    '客户管理' => 'Customer Management',
+
+    '预存记录' => 'Top Up',
+
+    '油票登记' => 'Petrol Chit Records',
 
     '柜台管理' => 'Counter Management',
 
-    '新增油票' => 'Add Chit',
+    '新增油票' => 'Add Petrol Chit',
 
-    '编辑油票 #{id}' => 'Edit Chit #{id}',
+    '编辑油票 #{id}' => 'Edit Petrol Chit #{id}',
 
-    '油票已创建。' => 'Chit record created.',
+    '油票已创建。' => 'Petrol chit created.',
 
-    '油票已更新。' => 'Chit record updated.',
+    '油票已更新。' => 'Petrol chit updated.',
 
-    '油票已删除。' => 'Chit record deleted.',
+    '油票已删除。' => 'Petrol chit deleted.',
 
-    '确定删除此油票？' => 'Delete this chit record?',
+    '确定删除此油票？' => 'Delete this petrol chit?',
 
     '柜员号' => 'Pos No.',
 
@@ -619,11 +627,11 @@ return [
 
     '确定删除此柜台？' => 'Delete this counter?',
 
-    '该柜台已有油票记录，无法删除。' => 'This counter has chit records and cannot be deleted.',
+    '该柜台已有油票记录，无法删除。' => 'This counter has petrol chit records and cannot be deleted.',
 
     '暂无柜台' => 'No counters yet',
 
-    '油票客户' => 'Chit Customers',
+    '油票客户' => 'Petrol Chit Customer',
 
     '客户名称' => 'Customer Name',
 
@@ -637,29 +645,47 @@ return [
 
     '油类型' => 'Oil Type',
 
-    '选择油票客户' => 'Select customer',
+    '选择油票客户' => 'Select petrol chit customer',
 
-    '新增油票客户' => 'Add Chit Customer',
+    '新增油票客户' => 'Add Petrol Chit Customer',
 
-    '编辑油票客户 #{id}' => 'Edit Chit Customer #{id}',
+    '编辑油票客户 #{id}' => 'Edit Petrol Chit Customer #{id}',
 
-    '油票客户已创建。' => 'Chit customer created.',
+    '油票客户已创建。' => 'Petrol chit customer created.',
 
-    '油票客户已更新。' => 'Chit customer updated.',
+    '油票客户已更新。' => 'Petrol chit customer updated.',
 
-    '油票客户已删除。' => 'Chit customer deleted.',
+    '油票客户已删除。' => 'Petrol chit customer deleted.',
 
-    '油票客户不存在。' => 'Chit customer not found.',
+    '油票客户不存在。' => 'Petrol chit customer not found.',
 
-    '确定删除此油票客户？' => 'Delete this chit customer?',
+    '确定删除此油票客户？' => 'Delete this petrol chit customer?',
 
-    '暂无油票客户' => 'No chit customers yet',
+    '暂无油票客户' => 'No petrol chit customers yet',
 
     '客户预存余额' => 'Customer Prepaid Balance',
 
     '已用金额' => 'Used Amount',
 
     '剩余金额' => 'Remaining Amount',
+
+    '预存日期' => 'Top Up Date',
+
+    '新增预存' => 'Add Top Up',
+
+    '编辑预存 #{id}' => 'Edit Top Up #{id}',
+
+    '预存已创建。' => 'Top up created.',
+
+    '预存已更新。' => 'Top up updated.',
+
+    '预存已删除。' => 'Top up deleted.',
+
+    '预存记录不存在。' => 'Top up record not found.',
+
+    '确定删除此预存记录？' => 'Delete this top up record?',
+
+    '暂无预存记录' => 'No top up records yet',
 
 ];
 

@@ -14,7 +14,7 @@ use yii\grid\GridView;
 use yii\grid\SerialColumn;
 use yii\helpers\Html;
 
-$this->title = Yii::t('app', '油票登记');
+$this->title = Yii::t('app', '使用记录');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <?php if (!empty($customerBalances['rows'])): ?>

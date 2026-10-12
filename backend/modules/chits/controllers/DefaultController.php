@@ -6,6 +6,7 @@ use backend\components\GslController;
 use backend\modules\chits\models\GslChitSearch;
 use common\models\GslChit;
 use common\models\GslChitCustomer;
+use common\models\GslChitTopup;
 use common\models\GslFill;
 use Yii;
 use yii\web\NotFoundHttpException;
@@ -52,8 +53,9 @@ class DefaultController extends GslController
         $rows = [];
         $totalDeposit = 0.0;
         $totalUsed = 0.0;
+        $depositMap = GslChitTopup::totalsByCustomer();
         foreach (GslChitCustomer::find()->orderBy(['name' => SORT_ASC])->all() as $customer) {
-            $deposit = (float) $customer->deposit_amount;
+            $deposit = $depositMap[$customer->id] ?? 0.0;
             $used = $usedMap[$customer->id] ?? 0.0;
             $rows[] = [
                 'name' => $customer->name,

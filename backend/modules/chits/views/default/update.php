@@ -5,7 +5,7 @@
 
 use yii\helpers\Html;
 $this->title = Yii::t('app', '编辑油票 #{id}', ['id' => $model->id]);
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', '油票登记'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', '使用记录'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="card card-primary">

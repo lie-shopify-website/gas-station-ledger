@@ -4,6 +4,7 @@ namespace backend\modules\chitcustomers\controllers;
 
 use backend\components\GslController;
 use common\models\GslChitCustomer;
+use common\models\GslChitTopup;
 use Yii;
 use yii\web\NotFoundHttpException;
 
@@ -19,6 +20,7 @@ class DefaultController extends GslController
 
         return $this->render('index', [
             'customers' => $customers,
+            'deposits' => GslChitTopup::totalsByCustomer(),
             'canWrite' => $this->canWrite('chitcustomers.write'),
         ]);
     }

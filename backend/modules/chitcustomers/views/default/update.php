@@ -8,7 +8,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 $this->title = Yii::t('app', '编辑油票客户 #{id}', ['id' => $model->id]);
-$this->params['breadcrumbs'][] = ['label' => Yii::t('app', '油票客户'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('app', '客户管理'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="card card-primary">
@@ -17,7 +17,6 @@ $this->params['breadcrumbs'][] = $this->title;
         <?php $form = ActiveForm::begin(); ?>
         <div class="row">
             <div class="col-md-4"><?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?></div>
-            <div class="col-md-4"><?= $form->field($model, 'deposit_amount')->textInput(['type' => 'number', 'step' => '0.01']) ?></div>
             <div class="col-md-4"><?= $form->field($model, 'is_active')->dropDownList(GslChitCustomer::activeOptions()) ?></div>
         </div>
         <div class="form-group">

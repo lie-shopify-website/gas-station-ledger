@@ -29,8 +29,6 @@ class GslChitCustomer extends ActiveRecord
             [['name'], 'required'],
             [['name'], 'string', 'max' => 64],
             [['name'], 'unique'],
-            [['deposit_amount'], 'number'],
-            [['deposit_amount'], 'default', 'value' => 0],
             [['is_active'], 'in', 'range' => array_keys(self::ACTIVE_OPTIONS)],
             [['is_active'], 'default', 'value' => 1],
         ];
@@ -41,7 +39,6 @@ class GslChitCustomer extends ActiveRecord
         return [
             'id' => 'ID',
             'name' => Yii::t('app', '客户名称'),
-            'deposit_amount' => Yii::t('app', '预存金额'),
             'is_active' => Yii::t('app', '启用状态'),
         ];
     }

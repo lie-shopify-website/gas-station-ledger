@@ -2,11 +2,12 @@
 
 /** @var yii\web\View $this */
 /** @var common\models\GslChitCustomer[] $customers */
+/** @var array<int,float> $deposits */
 /** @var bool $canWrite */
 
 use yii\helpers\Html;
 
-$this->title = Yii::t('app', '油票客户');
+$this->title = Yii::t('app', '客户管理');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="card">
@@ -38,7 +39,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <tr>
                     <td><?= $i + 1 ?></td>
                     <td><?= Html::encode($customer->name) ?></td>
-                    <td class="text-right"><?= Yii::$app->formatter->asDecimal((float) $customer->deposit_amount, 2) ?></td>
+                    <td class="text-right"><?= Yii::$app->formatter->asDecimal($deposits[$customer->id] ?? 0.0, 2) ?></td>
                     <td><?= Html::encode($customer->getIsActiveLabel()) ?></td>
                     <?php if ($canWrite): ?>
                     <td class="text-right chit-customer-row-actions">

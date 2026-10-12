@@ -31,8 +31,15 @@ use yii\helpers\Url;
                     ['label' => Yii::t('app', '加油记录'), 'icon' => 'gas-pump', 'url' => ['/fills/default/index'], 'visible' => Yii::$app->user->can('fills.view')],
                     ['label' => Yii::t('app', '刷卡记录'), 'icon' => 'credit-card', 'url' => ['/swipes/default/index'], 'visible' => Yii::$app->user->can('swipes.view')],
                     ['label' => Yii::t('app', '刷卡状态'), 'icon' => 'chart-pie', 'url' => ['/swipes/status/index'], 'visible' => Yii::$app->user->can('swipes.view')],
-                    ['label' => Yii::t('app', '油票登记'), 'icon' => 'receipt', 'url' => ['/chits/default/index'], 'visible' => Yii::$app->user->can('chits.view')],
-                    ['label' => Yii::t('app', '油票客户'), 'icon' => 'user-tag', 'url' => ['/chitcustomers/default/index'], 'visible' => Yii::$app->user->can('chitcustomers.view')],
+                    [
+                        'label' => Yii::t('app', '油票'),
+                        'icon' => 'receipt',
+                        'items' => [
+                            ['label' => Yii::t('app', '使用记录'), 'icon' => 'list', 'url' => ['/chits/default/index'], 'visible' => Yii::$app->user->can('chits.view')],
+                            ['label' => Yii::t('app', '客户管理'), 'icon' => 'user-tag', 'url' => ['/chitcustomers/default/index'], 'visible' => Yii::$app->user->can('chitcustomers.view')],
+                            ['label' => Yii::t('app', '预存记录'), 'icon' => 'money-bill-wave', 'url' => ['/chittopups/default/index'], 'visible' => Yii::$app->user->can('chittopups.view')],
+                        ],
+                    ],
                     ['label' => Yii::t('app', '公司/车牌'), 'icon' => 'car', 'url' => ['/plates/default/index'], 'visible' => Yii::$app->user->can('plates.view')],
                     ['label' => Yii::t('app', '柜台管理'), 'icon' => 'store', 'url' => ['/counters/default/index'], 'visible' => Yii::$app->user->can('counters.view')],
                     ['label' => Yii::t('app', '价格管理'), 'icon' => 'tags', 'url' => ['/prices/default/index'], 'visible' => Yii::$app->user->can('prices.view')],
