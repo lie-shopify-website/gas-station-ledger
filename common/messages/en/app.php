@@ -594,7 +594,7 @@ return [
 
     '使用记录' => 'Chit Records',
 
-    '客户管理' => 'Customer Management',
+    '客户管理' => 'Chit Customers',
 
     '预存记录' => 'Top Up Records',
 
