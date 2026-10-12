@@ -50,9 +50,22 @@ class GslCard extends ActiveRecord
         return $this->cardType ? $this->cardType->name : '';
     }
 
+    /**
+     * 展示用卡号：优先真实卡号，未填写时回退到内部卡号（card_code）。
+     */
+    public function getDisplayNo(): string
+    {
+        return ($this->real_card_no !== null && $this->real_card_no !== '') ? $this->real_card_no : $this->card_code;
+    }
+
     public static function findByCode(string $code): ?self
     {
-        return static::findOne(['card_code' => trim($code)]);
+        $code = trim($code);
+
+        return static::find()
+            ->where(['card_code' => $code])
+            ->orWhere(['real_card_no' => $code])
+            ->one();
     }
 
     public function getUsedLiters(): float

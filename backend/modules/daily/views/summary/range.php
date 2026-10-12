@@ -42,7 +42,10 @@ $rangeLabel = $rangeSummary['date_from'] . ' ~ ' . $rangeSummary['date_to'];
                 <tr>
                     <th><?= Yii::t('app', '日期') ?></th>
                     <th class="text-right"><?= Yii::t('app', '毛利') ?></th>
-                    <th class="text-right"><?= Yii::t('app', '卡主应付') ?></th>
+                    <th class="text-right"><?= Yii::t('app', 'Star卡应付') ?></th>
+                    <th class="text-right"><?= Yii::t('app', 'Sub卡应付') ?></th>
+                    <th class="text-right"><?= Yii::t('app', 'Star纯利') ?></th>
+                    <th class="text-right"><?= Yii::t('app', 'Sub纯利') ?></th>
                     <th class="text-right"><?= Yii::t('app', '纯利') ?></th>
                     <th class="text-right"><?= Yii::t('app', '刷卡升数') ?></th>
                     <th class="text-right"><?= Yii::t('app', '刷卡笔数') ?></th>
@@ -50,13 +53,16 @@ $rangeLabel = $rangeSummary['date_from'] . ' ~ ' . $rangeSummary['date_to'];
                 </thead>
                 <tbody>
                 <?php if (empty($rangeSummary['days'])): ?>
-                    <tr><td colspan="6" class="text-center text-muted"><?= Yii::t('app', '暂无数据') ?></td></tr>
+                    <tr><td colspan="9" class="text-center text-muted"><?= Yii::t('app', '暂无数据') ?></td></tr>
                 <?php else: ?>
                     <?php foreach ($rangeSummary['days'] as $day): ?>
                     <tr>
                         <td><?= Html::encode($day['work_date']) ?></td>
                         <td class="text-right"><?= number_format($day['gross'], 2) ?></td>
-                        <td class="text-right text-danger">−<?= number_format($day['owner_payout'], 2) ?></td>
+                        <td class="text-right text-danger"><?= ($day['star_payout'] > 0 ? '−' : '') . number_format($day['star_payout'], 2) ?></td>
+                        <td class="text-right text-danger"><?= ($day['sub_payout'] > 0 ? '−' : '') . number_format($day['sub_payout'], 2) ?></td>
+                        <td class="text-right font-weight-bold <?= $day['star_net'] < 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($day['star_net'], 2) ?></td>
+                        <td class="text-right font-weight-bold <?= $day['sub_net'] < 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($day['sub_net'], 2) ?></td>
                         <td class="text-right font-weight-bold text-success"><?= number_format($day['net'], 2) ?></td>
                         <td class="text-right"><?= number_format($day['swipe_liters'], 3) ?></td>
                         <td class="text-right"><?= (int) $day['swipe_count'] ?></td>
@@ -69,7 +75,10 @@ $rangeLabel = $rangeSummary['date_from'] . ' ~ ' . $rangeSummary['date_to'];
                 <tr class="font-weight-bold">
                     <td><?= Yii::t('app', '合计') ?></td>
                     <td class="text-right"><?= number_format($rangeSummary['totals']['gross'], 2) ?></td>
-                    <td class="text-right text-danger">−<?= number_format($rangeSummary['totals']['owner_payout'], 2) ?></td>
+                    <td class="text-right text-danger"><?= ($rangeSummary['totals']['star_payout'] > 0 ? '−' : '') . number_format($rangeSummary['totals']['star_payout'], 2) ?></td>
+                    <td class="text-right text-danger"><?= ($rangeSummary['totals']['sub_payout'] > 0 ? '−' : '') . number_format($rangeSummary['totals']['sub_payout'], 2) ?></td>
+                    <td class="text-right <?= $rangeSummary['totals']['star_net'] < 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($rangeSummary['totals']['star_net'], 2) ?></td>
+                    <td class="text-right <?= $rangeSummary['totals']['sub_net'] < 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($rangeSummary['totals']['sub_net'], 2) ?></td>
                     <td class="text-right text-success"><?= number_format($rangeSummary['totals']['net'], 2) ?></td>
                     <td class="text-right"><?= number_format($rangeSummary['totals']['swipe_liters'], 3) ?></td>
                     <td class="text-right"><?= (int) $rangeSummary['totals']['swipe_count'] ?></td>

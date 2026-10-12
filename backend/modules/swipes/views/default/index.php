@@ -18,11 +18,7 @@ $this->title = Yii::t('app', '刷卡记录');
 $this->params['breadcrumbs'][] = $this->title;
 
 $cardLabel = static function (GslCard $card): string {
-    $parts = [$card->card_code];
-    if ($card->real_card_no !== null && $card->real_card_no !== '') {
-        $parts[] = $card->real_card_no;
-    }
-    return implode(' - ', $parts);
+    return $card->getDisplayNo();
 };
 ?>
 <div class="card">

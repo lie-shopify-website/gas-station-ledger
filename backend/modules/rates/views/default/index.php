@@ -90,7 +90,7 @@ foreach ($rows as $row) {
                 <?php foreach ($rows as $row): ?>
                 <?php $card = $row['card']; ?>
                 <tr class="<?= $row['filled'] ? '' : 'table-warning' ?>">
-                    <td><?= Html::encode($card->card_code) ?></td>
+                    <td><?= Html::encode($card->getDisplayNo()) ?></td>
                     <td><?= $card->getCardTypeName() !== '' ? Html::encode($card->getCardTypeName()) : '—' ?></td>
                     <td style="width:200px">
                         <?php if ($canWrite): ?>
@@ -156,7 +156,7 @@ foreach ($rows as $row) {
                 <?php foreach ($history as $rate): ?>
                 <tr>
                     <td><?= Html::encode($rate->effective_from) ?> ~ <?= Html::encode($rate->effective_to) ?></td>
-                    <td><?= Html::encode($rate->card->card_code ?? '—') ?></td>
+                    <td><?= Html::encode($rate->card !== null ? $rate->card->getDisplayNo() : '—') ?></td>
                     <td><?= Html::encode($rate->card->owner_name ?? '') ?: '—' ?></td>
                     <td class="text-right"><?= number_format((float) $rate->rate, 2) ?></td>
                     <td><?= Html::encode($rate->note) ?></td>

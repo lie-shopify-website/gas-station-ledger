@@ -37,7 +37,7 @@ class SwipeStatusService
                 ->andWhere(['between', 'work_date', $from, $to])
                 ->sum('liters');
             $cardRows[] = [
-                'card_code' => $card->card_code,
+                'card_no' => $card->getDisplayNo(),
                 'quota' => (float) $card->monthly_quota,
                 'used' => round($used, 3),
                 'remaining' => round((float) $card->monthly_quota - $used, 3),

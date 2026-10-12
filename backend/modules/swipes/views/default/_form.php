@@ -19,10 +19,7 @@ $cardItems = ArrayHelper::map(
     GslCard::find()->where(['is_active' => 1])->orderBy('sort_order')->all(),
     'id',
     function ($card) {
-        $parts = [];
-        if ($card->real_card_no !== null && $card->real_card_no !== '') {
-            $parts[] = $card->real_card_no;
-        }
+        $parts = [$card->getDisplayNo()];
         if ($card->card_type_id && $card->cardType) {
             $parts[] = $card->cardType->name;
         }

@@ -50,7 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
             <tr>
 
-                <td><?= Html::encode($card['card_code']) ?></td>
+                <td><?= Html::encode($card['card_no']) ?></td>
 
                 <td class="text-right"><?= number_format($card['quota'], 3) ?></td>
 
@@ -114,7 +114,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <td><?= Html::encode($swipe->company->name ?? '—') ?></td>
 
-                <td><?= Html::encode($swipe->card->card_code ?? '—') ?></td>
+                <td><?= Html::encode($swipe->card !== null ? $swipe->card->getDisplayNo() : '—') ?></td>
 
                 <td class="text-right"><?= number_format($swipe->liters, 3) ?></td>
 

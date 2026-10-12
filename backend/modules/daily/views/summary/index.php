@@ -159,8 +159,20 @@ $profit = $summary['profit'];
                     <td class="text-right font-weight-bold"><?= number_format($profit['gross_total'], 2) ?></td>
                 </tr>
                 <tr>
-                    <td><?= Yii::t('app', '卡主应付') ?> <span class="text-muted small">(<?= (int) $profit['swipe_count'] ?> <?= Yii::t('app', '笔') ?>, <?= number_format($profit['swipe_liters'], 3) ?> <?= Yii::t('app', '升') ?>)</span></td>
-                    <td class="text-right font-weight-bold text-danger">−<?= number_format($profit['owner_payout'], 2) ?></td>
+                    <td><?= Yii::t('app', 'Star卡应付') ?> <span class="text-muted small">(<?= (int) $profit['star_cnt'] ?> <?= Yii::t('app', '笔') ?>, <?= number_format($profit['star_liters'], 3) ?> <?= Yii::t('app', '升') ?>)</span></td>
+                    <td class="text-right font-weight-bold text-danger">−<?= number_format($profit['star_payout'], 2) ?></td>
+                </tr>
+                <tr>
+                    <td><?= Yii::t('app', 'Sub卡应付') ?> <span class="text-muted small">(<?= (int) $profit['sub_cnt'] ?> <?= Yii::t('app', '笔') ?>, <?= number_format($profit['sub_liters'], 3) ?> <?= Yii::t('app', '升') ?>)</span></td>
+                    <td class="text-right font-weight-bold text-danger">−<?= number_format($profit['sub_payout'], 2) ?></td>
+                </tr>
+                <tr class="border-top">
+                    <td><?= Yii::t('app', 'Star纯利') ?></td>
+                    <td class="text-right font-weight-bold <?= $profit['star_net'] < 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($profit['star_net'], 2) ?></td>
+                </tr>
+                <tr>
+                    <td><?= Yii::t('app', 'Sub纯利') ?></td>
+                    <td class="text-right font-weight-bold <?= $profit['sub_net'] < 0 ? 'text-danger' : 'text-success' ?>"><?= number_format($profit['sub_net'], 2) ?></td>
                 </tr>
                 <tr class="border-top">
                     <td class="font-weight-bold"><?= Yii::t('app', '纯利') ?></td>

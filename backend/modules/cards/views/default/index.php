@@ -28,7 +28,6 @@ $today = date('Y-m-d');
                     <th><?= Yii::t('app', '卡号') ?></th>
                     <th><?= Yii::t('app', '卡类型') ?></th>
                     <th><?= Yii::t('app', '卡所属人') ?></th>
-                    <th><?= Yii::t('app', '真实卡号') ?></th>
                     <th class="text-right"><?= Yii::t('app', '可刷升数') ?></th>
                     <th class="text-right"><?= Yii::t('app', '当期费率') ?></th>
                     <th class="text-right"><?= Yii::t('app', '已用升数') ?></th>
@@ -40,14 +39,13 @@ $today = date('Y-m-d');
                 </thead>
                 <tbody>
                 <?php if (empty($cards)): ?>
-                <tr><td colspan="<?= $canWrite ? 11 : 10 ?>" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
+                <tr><td colspan="<?= $canWrite ? 10 : 9 ?>" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
                 <?php else: ?>
                 <?php foreach ($cards as $card): ?>
                 <tr>
-                    <td><?= Html::encode($card->card_code) ?></td>
+                    <td><?= Html::encode($card->getDisplayNo()) ?></td>
                     <td><?= $card->getCardTypeName() !== '' ? Html::encode($card->getCardTypeName()) : '—' ?></td>
                     <td><?= $card->owner_name !== null && $card->owner_name !== '' ? Html::encode($card->owner_name) : '—' ?></td>
-                    <td><?= $card->real_card_no !== null && $card->real_card_no !== '' ? Html::encode($card->real_card_no) : '—' ?></td>
                     <td class="text-right"><?= number_format((float) $card->monthly_quota, 3) ?></td>
                     <td class="text-right"><?= number_format($card->getCurrentRate($today), 2) ?></td>
                     <td class="text-right"><?= number_format($card->getUsedLiters(), 3) ?></td>
