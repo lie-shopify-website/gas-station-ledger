@@ -46,7 +46,7 @@ class GslSwipe extends ActiveRecord
             'liters' => Yii::t('app', '升数'),
             'owner_rate' => Yii::t('app', '卡费率'),
             'owner_payout' => Yii::t('app', '应付持卡人'),
-            'swipe_receipt' => Yii::t('app', '回单号'),
+            'swipe_receipt' => Yii::t('app', '批准号'),
             'note' => Yii::t('app', '备注'),
         ];
     }

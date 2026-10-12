@@ -265,7 +265,7 @@ return [
 
     '收据号' => 'Receipt No.',
 
-    '回单号' => 'Receipt No.',
+    '批准号' => 'Approval No.',
 
     '日期' => 'Date',
 

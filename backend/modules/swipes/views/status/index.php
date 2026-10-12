@@ -90,7 +90,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <th class="text-right"><?= Yii::t('app', '升数') ?></th>
 
-                <th><?= Yii::t('app', '回单号') ?></th>
+                <th><?= Yii::t('app', '批准号') ?></th>
 
                 <th><?= Yii::t('app', '备注') ?></th>
 
