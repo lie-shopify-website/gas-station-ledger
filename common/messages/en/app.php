@@ -15,6 +15,10 @@ return [
     '仪表盘' => 'Dashboard',
 
     '日报汇总' => 'Daily Summary',
+    '数据汇总' => 'Data Summary',
+    '日汇总' => 'Daily',
+    '周汇总' => 'Weekly',
+    '月汇总' => 'Monthly',
     '日报明细' => 'Daily Details',
     '按公司' => 'By Company',
     '按柜台' => 'By Counter',
@@ -577,6 +581,14 @@ return [
     '总成本' => 'Total Cost',
 
     '刷卡升数' => 'Swiped Liters',
+
+    '模式' => 'Mode',
+    '日' => 'Day',
+    '周' => 'Week',
+    '月' => 'Month',
+    '毛利' => 'Gross',
+    '刷卡笔数' => 'Swipe Count',
+    '暂无数据' => 'No data',
 
 
 

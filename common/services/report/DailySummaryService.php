@@ -102,6 +102,86 @@ class DailySummaryService
     }
 
     /**
+     * Per-day profit for a date range (used by weekly/monthly views).
+     *
+     * @return array{date_from:string,date_to:string,days:array,totals:array}
+     */
+    public function getProfitForRange(string $from, string $to): array
+    {
+        $fillAgg = GslFill::find()
+            ->select([
+                'work_date',
+                'amount_due' => 'ROUND(SUM(amount_due), 2)',
+                'cost' => 'ROUND(SUM(cost), 2)',
+            ])
+            ->where(['between', 'work_date', $from, $to])
+            ->andWhere(['>', 'liters', 0])
+            ->groupBy('work_date')
+            ->indexBy('work_date')
+            ->asArray()
+            ->all();
+
+        $swipeAgg = GslSwipe::find()
+            ->select([
+                'work_date',
+                'owner_payout' => 'ROUND(SUM(owner_payout), 2)',
+                'liters' => 'ROUND(SUM(liters), 3)',
+                'cnt' => 'COUNT(*)',
+            ])
+            ->where(['between', 'work_date', $from, $to])
+            ->groupBy('work_date')
+            ->indexBy('work_date')
+            ->asArray()
+            ->all();
+
+        // Build a sorted union of all dates that have fills or swipes
+        $dates = array_unique(array_merge(array_keys($fillAgg), array_keys($swipeAgg)));
+        sort($dates);
+
+        $days = [];
+        $totals = ['gross' => 0.0, 'owner_payout' => 0.0, 'net' => 0.0, 'swipe_liters' => 0.0, 'swipe_count' => 0];
+
+        foreach ($dates as $date) {
+            $fill = $fillAgg[$date] ?? null;
+            $swipe = $swipeAgg[$date] ?? null;
+
+            $amountDue = (float) ($fill['amount_due'] ?? 0);
+            $cost = (float) ($fill['cost'] ?? 0);
+            $gross = round($amountDue + $cost, 2);
+            $payout = round((float) ($swipe['owner_payout'] ?? 0), 2);
+            $net = round($gross - $payout, 2);
+
+            $days[] = [
+                'work_date' => $date,
+                'gross' => $gross,
+                'owner_payout' => $payout,
+                'net' => $net,
+                'swipe_liters' => (float) ($swipe['liters'] ?? 0),
+                'swipe_count' => (int) ($swipe['cnt'] ?? 0),
+                'fill_count' => $fill !== null ? 1 : 0,
+            ];
+
+            $totals['gross'] += $gross;
+            $totals['owner_payout'] += $payout;
+            $totals['net'] += $net;
+            $totals['swipe_liters'] += (float) ($swipe['liters'] ?? 0);
+            $totals['swipe_count'] += (int) ($swipe['cnt'] ?? 0);
+        }
+
+        $totals['gross'] = round($totals['gross'], 2);
+        $totals['owner_payout'] = round($totals['owner_payout'], 2);
+        $totals['net'] = round($totals['net'], 2);
+        $totals['swipe_liters'] = round($totals['swipe_liters'], 3);
+
+        return [
+            'date_from' => $from,
+            'date_to' => $to,
+            'days' => $days,
+            'totals' => $totals,
+        ];
+    }
+
+    /**
      * @return array{date_from:string,date_to:string,companies:array,totals:array}
      */
     public function getCompanyForRange(string $from, string $to): array

@@ -26,7 +26,15 @@ use yii\helpers\Url;
             echo \hail812\adminlte\widgets\Menu::widget([
                 'items' => [
                     ['label' => Yii::t('app', '仪表盘'), 'icon' => 'tachometer-alt', 'url' => ['/dashboard/default/index'], 'visible' => Yii::$app->user->can('dashboard.view')],
-                    ['label' => Yii::t('app', '日报汇总'), 'icon' => 'calendar-day', 'url' => ['/daily/summary/index'], 'visible' => Yii::$app->user->can('daily.view')],
+                    [
+                        'label' => Yii::t('app', '数据汇总'),
+                        'icon' => 'chart-line',
+                        'items' => [
+                            ['label' => Yii::t('app', '日汇总'), 'icon' => 'calendar-day', 'url' => ['/daily/summary/index'], 'visible' => Yii::$app->user->can('daily.view')],
+                            ['label' => Yii::t('app', '周汇总'), 'icon' => 'calendar-week', 'url' => ['/daily/summary/week'], 'visible' => Yii::$app->user->can('daily.view')],
+                            ['label' => Yii::t('app', '月汇总'), 'icon' => 'calendar-alt', 'url' => ['/daily/summary/month'], 'visible' => Yii::$app->user->can('daily.view')],
+                        ],
+                    ],
                     ['label' => Yii::t('app', '柜台汇总'), 'icon' => 'cash-register', 'url' => ['/counter/summary/index'], 'visible' => Yii::$app->user->can('counter.view')],
                     ['label' => Yii::t('app', '加油记录'), 'icon' => 'gas-pump', 'url' => ['/fills/default/index'], 'visible' => Yii::$app->user->can('fills.view')],
                     [
