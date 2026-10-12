@@ -6,6 +6,10 @@
 
 /** @var array $summary */
 /** @var array $counterSummary */
+/** @var array $profit — daily profit summary from DailySummaryService::getProfit() */
+
+$profit = $summary['profit'];
+
 
 
 
@@ -233,6 +237,32 @@ $workDate = $summary['work_date'];
 
             </div>
 
+        </div>
+
+        <div class="summary-totals-panel p-3 border rounded bg-light mt-4">
+            <h5 class="font-weight-bold mb-3"><?= Yii::t('app', '利润汇总') ?></h5>
+            <table class="table table-sm table-borderless mb-0">
+                <tbody>
+                <?php foreach ($profit['companies'] as $cp): ?>
+                    <tr>
+                        <td><?= Yii::t('app', '毛利（{name}）', ['name' => $cp['company_name']]) ?></td>
+                        <td class="text-right font-weight-bold"><?= number_format($cp['gross'], 2) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                <tr class="border-top">
+                    <td><?= Yii::t('app', '毛利合计') ?></td>
+                    <td class="text-right font-weight-bold"><?= number_format($profit['gross_total'], 2) ?></td>
+                </tr>
+                <tr>
+                    <td><?= Yii::t('app', '卡主应付') ?> <span class="text-muted small">(<?= (int) $profit['swipe_count'] ?> <?= Yii::t('app', '笔') ?>, <?= number_format($profit['swipe_liters'], 3) ?> <?= Yii::t('app', '升') ?>)</span></td>
+                    <td class="text-right font-weight-bold text-danger">−<?= number_format($profit['owner_payout'], 2) ?></td>
+                </tr>
+                <tr class="border-top">
+                    <td class="font-weight-bold"><?= Yii::t('app', '纯利') ?></td>
+                    <td class="text-right font-weight-bold h5 mb-0 text-success"><?= number_format($profit['net'], 2) ?></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
     </div>

@@ -36,7 +36,7 @@ return [
 
     '价格管理' => 'Price Management',
 
-    '油卡管理' => 'Card Management',
+    '油卡管理' => 'Fuel Cards',
 
     '系统设置' => 'Settings',
 
@@ -271,7 +271,18 @@ return [
 
     '升' => 'L',
 
+    '利润汇总' => 'Profit Summary',
+    '毛利（{name}）' => 'Gross ({name})',
+    '毛利合计' => 'Gross Total',
+    '卡主应付' => 'Card Owner Payout',
+    '纯利' => 'Net Profit',
+    '笔' => 'txn',
+    '基础设置' => 'Master Data',
+    '系统' => 'System',
+
     '刷卡记录' => 'Swipe Records',
+
+    '刷卡' => 'Card Swipes',
 
     '新增刷卡记录' => 'Add Swipe',
 
@@ -291,7 +302,7 @@ return [
 
     '该卡当日已刷' => 'This Card Today',
 
-    '卡费率' => 'Card Rate',
+    '卡费率' => 'Fuel Card Rates',
 
     '应付持卡人' => 'Owner Payout',
 
@@ -581,11 +592,11 @@ return [
 
     '油票' => 'Petrol Chit',
 
-    '使用记录' => 'Record',
+    '使用记录' => 'Chit Records',
 
     '客户管理' => 'Customer Management',
 
-    '预存记录' => 'Top Up',
+    '预存记录' => 'Top Up Records',
 
     '油票登记' => 'Petrol Chit Records',
 

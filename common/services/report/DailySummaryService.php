@@ -6,6 +6,7 @@ use common\models\GslCompany;
 use common\models\GslFill;
 use common\models\GslPriceDiscount;
 use common\models\GslPricePeriod;
+use common\models\GslSwipe;
 
 class DailySummaryService
 {
@@ -55,6 +56,48 @@ class DailySummaryService
             'work_date' => $workDate,
             'companies' => $rows,
             'totals' => $totals,
+            'profit' => $this->getProfit($workDate, $rows, $totals),
+        ];
+    }
+
+    /**
+     * Daily profit: gross = amount_due + cost (cost is negative),
+     * card owner payout from swipes, net = gross - payout.
+     */
+    public function getProfit(string $workDate, array $companyRows, array $totals): array
+    {
+        $swipeAgg = GslSwipe::find()
+            ->select([
+                'liters' => 'ROUND(SUM(liters), 3)',
+                'owner_payout' => 'ROUND(SUM(owner_payout), 2)',
+                'cnt' => 'COUNT(*)',
+            ])
+            ->where(['work_date' => $workDate])
+            ->asArray()
+            ->one();
+
+        $ownerPayout = (float) ($swipeAgg['owner_payout'] ?? 0);
+        $swipeLiters = (float) ($swipeAgg['liters'] ?? 0);
+        $swipeCount = (int) ($swipeAgg['cnt'] ?? 0);
+
+        $companyProfits = [];
+        foreach ($companyRows as $row) {
+            $gross = round($row['amount_due'] + $row['cost'], 2);
+            $companyProfits[] = [
+                'company_name' => $row['company_name'],
+                'gross' => $gross,
+            ];
+        }
+
+        $grossTotal = round($totals['amount_due'] + $totals['cost'], 2);
+
+        return [
+            'companies' => $companyProfits,
+            'gross_total' => $grossTotal,
+            'owner_payout' => round($ownerPayout, 2),
+            'net' => round($grossTotal - $ownerPayout, 2),
+            'swipe_liters' => $swipeLiters,
+            'swipe_count' => $swipeCount,
         ];
     }
 

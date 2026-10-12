@@ -303,7 +303,7 @@ a.desc:after {
 
 /* Sidebar submenu: indent child items (only when the sidebar is expanded) */
 body:not(.sidebar-collapse) .main-sidebar .nav-sidebar .nav-treeview > .nav-item > .nav-link {
-    padding-left: 24px;
+    padding-left: 32px;
 }
 
 /* Sidebar submenu: use the same active background as the top level */

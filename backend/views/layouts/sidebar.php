@@ -29,8 +29,14 @@ use yii\helpers\Url;
                     ['label' => Yii::t('app', '日报汇总'), 'icon' => 'calendar-day', 'url' => ['/daily/summary/index'], 'visible' => Yii::$app->user->can('daily.view')],
                     ['label' => Yii::t('app', '柜台汇总'), 'icon' => 'cash-register', 'url' => ['/counter/summary/index'], 'visible' => Yii::$app->user->can('counter.view')],
                     ['label' => Yii::t('app', '加油记录'), 'icon' => 'gas-pump', 'url' => ['/fills/default/index'], 'visible' => Yii::$app->user->can('fills.view')],
-                    ['label' => Yii::t('app', '刷卡记录'), 'icon' => 'credit-card', 'url' => ['/swipes/default/index'], 'visible' => Yii::$app->user->can('swipes.view')],
-                    ['label' => Yii::t('app', '刷卡状态'), 'icon' => 'chart-pie', 'url' => ['/swipes/status/index'], 'visible' => Yii::$app->user->can('swipes.view')],
+                    [
+                        'label' => Yii::t('app', '刷卡'),
+                        'icon' => 'credit-card',
+                        'items' => [
+                            ['label' => Yii::t('app', '刷卡记录'), 'icon' => 'list', 'url' => ['/swipes/default/index'], 'visible' => Yii::$app->user->can('swipes.view')],
+                            ['label' => Yii::t('app', '刷卡状态'), 'icon' => 'chart-pie', 'url' => ['/swipes/status/index'], 'visible' => Yii::$app->user->can('swipes.view')],
+                        ],
+                    ],
                     [
                         'label' => Yii::t('app', '油票'),
                         'icon' => 'receipt',
@@ -40,13 +46,25 @@ use yii\helpers\Url;
                             ['label' => Yii::t('app', '预存记录'), 'icon' => 'money-bill-wave', 'url' => ['/chittopups/default/index'], 'visible' => Yii::$app->user->can('chittopups.view')],
                         ],
                     ],
-                    ['label' => Yii::t('app', '公司/车牌'), 'icon' => 'car', 'url' => ['/plates/default/index'], 'visible' => Yii::$app->user->can('plates.view')],
-                    ['label' => Yii::t('app', '柜台管理'), 'icon' => 'store', 'url' => ['/counters/default/index'], 'visible' => Yii::$app->user->can('counters.view')],
-                    ['label' => Yii::t('app', '价格管理'), 'icon' => 'tags', 'url' => ['/prices/default/index'], 'visible' => Yii::$app->user->can('prices.view')],
-                    ['label' => Yii::t('app', '卡费率'), 'icon' => 'percent', 'url' => ['/rates/default/index'], 'visible' => Yii::$app->user->can('rates.view')],
-                    ['label' => Yii::t('app', '油卡管理'), 'icon' => 'id-card', 'url' => ['/cards/default/index'], 'visible' => Yii::$app->user->can('cards.view')],
-                    ['label' => Yii::t('app', '系统设置'), 'icon' => 'cog', 'url' => ['/settings/default/index'], 'visible' => Yii::$app->user->can('settings.write')],
-                    ['label' => Yii::t('app', '用户管理'), 'icon' => 'users', 'url' => ['/user/default/index'], 'visible' => Yii::$app->user->can('users.manage')],
+                    [
+                        'label' => Yii::t('app', '基础设置'),
+                        'icon' => 'sliders-h',
+                        'items' => [
+                            ['label' => Yii::t('app', '公司/车牌'), 'icon' => 'car', 'url' => ['/plates/default/index'], 'visible' => Yii::$app->user->can('plates.view')],
+                            ['label' => Yii::t('app', '柜台管理'), 'icon' => 'store', 'url' => ['/counters/default/index'], 'visible' => Yii::$app->user->can('counters.view')],
+                            ['label' => Yii::t('app', '价格管理'), 'icon' => 'tags', 'url' => ['/prices/default/index'], 'visible' => Yii::$app->user->can('prices.view')],
+                            ['label' => Yii::t('app', '卡费率'), 'icon' => 'percent', 'url' => ['/rates/default/index'], 'visible' => Yii::$app->user->can('rates.view')],
+                            ['label' => Yii::t('app', '油卡管理'), 'icon' => 'id-card', 'url' => ['/cards/default/index'], 'visible' => Yii::$app->user->can('cards.view')],
+                        ],
+                    ],
+                    [
+                        'label' => Yii::t('app', '系统'),
+                        'icon' => 'cogs',
+                        'items' => [
+                            ['label' => Yii::t('app', '系统设置'), 'icon' => 'cog', 'url' => ['/settings/default/index'], 'visible' => Yii::$app->user->can('settings.write')],
+                            ['label' => Yii::t('app', '用户管理'), 'icon' => 'users', 'url' => ['/user/default/index'], 'visible' => Yii::$app->user->can('users.manage')],
+                        ],
+                    ],
                 ],
             ]);
             ?>
