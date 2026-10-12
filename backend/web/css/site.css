@@ -50,6 +50,13 @@ a.desc:after {
     min-width: 50px;
 }
 
+/* Swipe list: card filter fits the card code plus 10 characters reserved for the real card number */
+.grid-view .filters select.gsl-card-filter {
+    min-width: 20ch;
+    max-width: 20ch;
+    text-overflow: ellipsis;
+}
+
 /* Wide tables (7+ columns): scroll horizontally on small screens instead of squishing */
 .table-responsive-wide > .table,
 .table-responsive-wide .grid-view .table {

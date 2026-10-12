@@ -68,17 +68,13 @@ $cardItems = ArrayHelper::map(
             <div><strong id="swipe-summary-left">0.000</strong> <?= Yii::t('app', '升') ?></div>
         </div>
     </div>
-    <div class="text-muted small mt-2"><?= Yii::t('app', '公司可留空（仅作筛选）；费率按刷卡日期自动取该卡当期费率，允许超刷。') ?></div>
+    <div class="text-muted small mt-2"><?= Yii::t('app', '费率按刷卡日期自动取该卡当期费率，允许超刷。') ?></div>
 </div>
 <div class="row">
     <div class="col-md-4"><?= $form->field($model, 'work_date')->input('date') ?></div>
     <div class="col-md-4"><?= $form->field($model, 'card_id')->dropDownList(
         $cardItems,
         $searchableOptions + ['prompt' => Yii::t('app', '选择油卡')]
-    ) ?></div>
-    <div class="col-md-4"><?= $form->field($model, 'company_id')->dropDownList(
-        ArrayHelper::map(GslCompany::find()->where(['is_active' => 1])->orderBy('sort_order')->all(), 'id', 'name'),
-        $searchableOptions + ['prompt' => Yii::t('app', '公司（可留空）')]
     ) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'liters')->textInput(['type' => 'number', 'step' => '0.001']) ?></div>
     <div class="col-md-4"><?= $form->field($model, 'owner_rate')->textInput(['readonly' => true]) ?></div>

@@ -16,6 +16,14 @@ use yii\helpers\Html;
 
 $this->title = Yii::t('app', '刷卡记录');
 $this->params['breadcrumbs'][] = $this->title;
+
+$cardLabel = static function (GslCard $card): string {
+    $parts = [$card->card_code];
+    if ($card->real_card_no !== null && $card->real_card_no !== '') {
+        $parts[] = $card->real_card_no;
+    }
+    return implode(' - ', $parts);
+};
 ?>
 <div class="card">
     <div class="card-header">
@@ -45,11 +53,13 @@ $this->params['breadcrumbs'][] = $this->title;
                         'attribute' => 'company_id',
                         'value' => 'company.name',
                         'filter' => ArrayHelper::map(GslCompany::find()->orderBy('sort_order')->all(), 'id', 'name'),
+                        'visible' => false,
                     ],
                     [
                         'attribute' => 'card_id',
-                        'value' => 'card.card_code',
-                        'filter' => ArrayHelper::map(GslCard::find()->orderBy('sort_order')->all(), 'id', 'card_code'),
+                        'value' => static fn($model) => $model->card ? $cardLabel($model->card) : '—',
+                        'filter' => ArrayHelper::map(GslCard::find()->orderBy('sort_order')->all(), 'id', $cardLabel),
+                        'filterInputOptions' => ['class' => 'form-control gsl-card-filter'],
                     ],
                     [
                         'attribute' => 'card_type_id',
