@@ -594,6 +594,16 @@ return [
     '刷卡笔数' => 'Swipe Count',
     '暂无数据' => 'No data',
 
+    '油票汇总' => 'Chit Summary',
+    '月份' => 'Month',
+    '每日消费明细' => 'Daily Spending Details',
+    '月度消费汇总' => 'Monthly Spending Summary',
+    '客户余额' => 'Customer Balances',
+    '消费金额' => 'Spending Amount',
+    '预存总额' => 'Total Deposit',
+    '消费总额' => 'Total Used',
+    '余额' => 'Balance',
+
 
 
     // Errors

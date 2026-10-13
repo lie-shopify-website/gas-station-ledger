@@ -52,6 +52,7 @@ use yii\helpers\Url;
                             ['label' => Yii::t('app', '使用记录'), 'icon' => 'list', 'url' => ['/chits/default/index'], 'visible' => Yii::$app->user->can('chits.view')],
                             ['label' => Yii::t('app', '客户管理'), 'icon' => 'user-tag', 'url' => ['/chitcustomers/default/index'], 'visible' => Yii::$app->user->can('chitcustomers.view')],
                             ['label' => Yii::t('app', '预存记录'), 'icon' => 'money-bill-wave', 'url' => ['/chittopups/default/index'], 'visible' => Yii::$app->user->can('chittopups.view')],
+                            ['label' => Yii::t('app', '汇总'), 'icon' => 'chart-pie', 'url' => ['/chits/default/summary'], 'visible' => Yii::$app->user->can('chits.view')],
                         ],
                     ],
                     [

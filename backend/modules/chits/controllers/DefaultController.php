@@ -8,6 +8,7 @@ use common\models\GslChit;
 use common\models\GslChitCustomer;
 use common\models\GslChitTopup;
 use common\models\GslFill;
+use common\services\report\ChitSummaryService;
 use Yii;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -73,6 +74,21 @@ class DefaultController extends GslController
             'used' => $totalUsed,
             'remaining' => $totalDeposit - $totalUsed,
         ];
+    }
+
+    public function actionSummary()
+    {
+        $this->checkPermission('chits.view');
+
+        $month = Yii::$app->request->get('month', date('Y-m'));
+        $service = new ChitSummaryService();
+
+        return $this->render('summary', [
+            'month' => $month,
+            'daily' => $service->getDailyByCustomer($month),
+            'monthly' => $service->getMonthlyByCustomer($month),
+            'balances' => $service->getBalances(),
+        ]);
     }
 
     public function actionCreate()
