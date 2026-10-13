@@ -7,7 +7,7 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
 /**
- * 按卡的费率（每张卡按周一条，周区间为周四 → 周三，与价格时段口径一致）。
+ * 按客户的费率（每个卡主按周一条，周区间为周四 → 周三，与价格时段口径一致）。
  */
 class GslCardRate extends ActiveRecord
 {
@@ -30,8 +30,8 @@ class GslCardRate extends ActiveRecord
     public function rules()
     {
         return [
-            [['card_id', 'rate', 'effective_from', 'effective_to'], 'required'],
-            [['card_id'], 'integer'],
+            [['owner_name', 'rate', 'effective_from', 'effective_to'], 'required'],
+            [['owner_name'], 'string', 'max' => 64],
             [['rate'], 'number'],
             [['effective_from', 'effective_to'], 'date', 'format' => 'php:Y-m-d'],
             [['note'], 'string', 'max' => 255],
@@ -41,7 +41,7 @@ class GslCardRate extends ActiveRecord
     public function attributeLabels()
     {
         return [
-            'card_id' => \Yii::t('app', '油卡'),
+            'owner_name' => \Yii::t('app', '卡所属人'),
             'rate' => \Yii::t('app', '费率'),
             'effective_from' => \Yii::t('app', '生效日期'),
             'effective_to' => \Yii::t('app', '结束日期'),
@@ -49,22 +49,17 @@ class GslCardRate extends ActiveRecord
         ];
     }
 
-    public function getCard()
-    {
-        return $this->hasOne(GslCard::class, ['id' => 'card_id']);
-    }
-
     /**
-     * 取某张卡在指定日期的当期费率；无覆盖则回退到最近一条已生效费率。
+     * 取某客户在指定日期的当期费率；无覆盖则回退到最近一条已生效费率。
      */
-    public static function resolveRate(int $cardId, string $date): ?float
+    public static function resolveRate(string $ownerName, string $date): ?float
     {
-        if ($cardId <= 0 || $date === '') {
+        if ($ownerName === '' || $date === '') {
             return null;
         }
 
         $row = static::find()
-            ->where(['card_id' => $cardId])
+            ->where(['owner_name' => $ownerName])
             ->andWhere(['<=', 'effective_from', $date])
             ->andWhere(['>=', 'effective_to', $date])
             ->orderBy(['effective_from' => SORT_DESC])
@@ -72,7 +67,7 @@ class GslCardRate extends ActiveRecord
 
         if ($row === null) {
             $row = static::find()
-                ->where(['card_id' => $cardId])
+                ->where(['owner_name' => $ownerName])
                 ->andWhere(['<=', 'effective_from', $date])
                 ->orderBy(['effective_from' => SORT_DESC])
                 ->one();
@@ -82,14 +77,14 @@ class GslCardRate extends ActiveRecord
     }
 
     /**
-     * 写入（或更新）某张卡在指定周的费率。
+     * 写入（或更新）某客户在指定周的费率。
      */
-    public static function setRate(int $cardId, string $effectiveFrom, string $effectiveTo, float $rate, ?string $note = null): void
+    public static function setRate(string $ownerName, string $effectiveFrom, string $effectiveTo, float $rate, ?string $note = null): void
     {
-        $row = static::findOne(['card_id' => $cardId, 'effective_from' => $effectiveFrom]);
+        $row = static::findOne(['owner_name' => $ownerName, 'effective_from' => $effectiveFrom]);
         if ($row === null) {
             $row = new static([
-                'card_id' => $cardId,
+                'owner_name' => $ownerName,
                 'effective_from' => $effectiveFrom,
             ]);
         }

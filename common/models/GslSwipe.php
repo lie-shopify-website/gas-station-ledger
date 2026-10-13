@@ -81,9 +81,9 @@ class GslSwipe extends ActiveRecord
         // 刷卡金额口径：按刷卡日期取该卡当期费率（费率表），无记录时回退到卡上默认费率。
         // 费率与卡类型解耦；允许超刷，不做升数上限拦截。
         $rate = null;
-        if ($this->card_id) {
-            $rate = GslCardRate::resolveRate((int) $this->card_id, (string) $this->work_date);
-            if ($rate === null && $this->card) {
+        if ($this->card_id && $this->card) {
+            $rate = GslCardRate::resolveRate((string) $this->card->owner_name, (string) $this->work_date);
+            if ($rate === null) {
                 $rate = (float) $this->card->owner_rate;
             }
         }

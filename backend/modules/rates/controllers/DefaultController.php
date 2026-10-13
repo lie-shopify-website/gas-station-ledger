@@ -20,30 +20,27 @@ class DefaultController extends GslController
         }
         [$from, $to] = GslCardRate::weekOf($anchor);
 
-        $cards = GslCard::find()
-            ->where(['is_active' => 1])
-            ->with('cardType')
-            ->orderBy(['sort_order' => SORT_ASC, 'id' => SORT_ASC])
-            ->all();
+        $owners = GslCard::ownerNameOptions();
 
         $existing = GslCardRate::find()
             ->where(['effective_from' => $from])
-            ->indexBy('card_id')
+            ->indexBy('owner_name')
             ->all();
 
         $rows = [];
-        foreach ($cards as $card) {
-            $row = $existing[$card->id] ?? null;
+        foreach ($owners as $ownerName) {
+            $row = $existing[$ownerName] ?? null;
+            // Get a card for this owner to determine the default fallback rate
+            $card = GslCard::find()->where(['owner_name' => $ownerName])->one();
             $rows[] = [
-                'card' => $card,
-                'rate' => $row ? (float) $row->rate : $card->getCurrentRate($from),
+                'owner_name' => $ownerName,
+                'rate' => $row ? (float) $row->rate : ($card ? $card->getCurrentRate($from) : 0.0),
                 'filled' => $row !== null,
             ];
         }
 
         $history = GslCardRate::find()
-            ->with('card')
-            ->orderBy(['effective_from' => SORT_DESC, 'card_id' => SORT_ASC])
+            ->orderBy(['effective_from' => SORT_DESC, 'owner_name' => SORT_ASC])
             ->limit(200)
             ->all();
 
@@ -72,32 +69,17 @@ class DefaultController extends GslController
         }
 
         $posted = (array) $request->post('rate', []);
-        $postedOwners = (array) $request->post('owner_name', []);
         $saved = 0;
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            foreach ($posted as $cardId => $value) {
-                $cardId = (int) $cardId;
-                if ($cardId <= 0 || $value === null || $value === '' || !is_numeric($value)) {
+            foreach ($posted as $ownerName => $value) {
+                $ownerName = trim((string) $ownerName);
+                if ($ownerName === '' || $value === null || $value === '' || !is_numeric($value)) {
                     continue;
                 }
-                GslCardRate::setRate($cardId, $from, $to, (float) $value);
+                GslCardRate::setRate($ownerName, $from, $to, (float) $value);
                 $saved++;
-            }
-
-            // 卡所属人为手填文本，只在不为空时更新，避免误清空
-            foreach ($postedOwners as $cardId => $name) {
-                $cardId = (int) $cardId;
-                $name = trim((string) $name);
-                if ($cardId <= 0 || $name === '') {
-                    continue;
-                }
-                $card = GslCard::findOne($cardId);
-                if ($card !== null && $card->owner_name !== $name) {
-                    $card->owner_name = $name;
-                    $card->save(false);
-                }
             }
 
             $transaction->commit();
@@ -106,7 +88,7 @@ class DefaultController extends GslController
             throw $e;
         }
 
-        Yii::$app->session->setFlash('success', Yii::t('app', '已保存 {count} 张卡的费率。', ['count' => $saved]));
+        Yii::$app->session->setFlash('success', Yii::t('app', '已保存 {count} 个客户的费率。', ['count' => $saved]));
 
         return $this->redirect(['index', 'week' => $from]);
     }

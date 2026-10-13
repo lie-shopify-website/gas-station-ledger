@@ -79,7 +79,7 @@ class GslCard extends ActiveRecord
     public function getCurrentRate(?string $date = null): float
     {
         $date = $date ?: date('Y-m-d');
-        $rate = GslCardRate::resolveRate((int) $this->id, $date);
+        $rate = GslCardRate::resolveRate((string) $this->owner_name, $date);
 
         return $rate === null ? (float) $this->owner_rate : $rate;
     }
