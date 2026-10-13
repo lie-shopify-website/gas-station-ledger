@@ -30,6 +30,13 @@ class m261013_100000_rate_by_owner extends Migration
         // Drop card_id column
         $this->dropColumn('{{%gsl_card_rate}}', 'card_id');
 
+        // Deduplicate: same owner_name + effective_from may have multiple rows
+        // (from when rate was per-card and one owner had several cards)
+        $this->execute('DELETE r1 FROM {{%gsl_card_rate}} r1 INNER JOIN {{%gsl_card_rate}} r2 ON r1.owner_name = r2.owner_name AND r1.effective_from = r2.effective_from AND r1.id < r2.id');
+
+        // Remove rows with empty owner_name (orphaned data)
+        $this->delete('{{%gsl_card_rate}}', ['owner_name' => '']);
+
         // New indexes
         $this->createIndex('uk-gsl_card_rate-owner_from', '{{%gsl_card_rate}}', ['owner_name', 'effective_from'], true);
         $this->createIndex('idx-gsl_card_rate-owner_range', '{{%gsl_card_rate}}', ['owner_name', 'effective_from', 'effective_to']);
