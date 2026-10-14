@@ -187,6 +187,8 @@ return [
 
     '汇总 — {date}' => 'Summary — {date}',
 
+    '{label} — {from} ~ {to} 每日汇总' => '{label} — {from} ~ {to} Daily Summary',
+
     '公司' => 'Company',
 
     '付款方式' => 'Payment',
@@ -255,6 +257,12 @@ return [
 
     '真实卡号' => 'Real Card No.',
 
+    '卡所属人' => 'Card Owner',
+
+    '可刷升数' => 'Monthly Quota',
+
+    '默认费率' => 'Default Rate',
+
     '油卡' => 'Card',
 
     '月配额' => 'Monthly Quota',
@@ -310,11 +318,59 @@ return [
 
     '该卡当日已刷' => 'This Card Today',
 
+    '该卡本月已刷' => 'This Card This Month',
+
+    '剩余（可为负）' => 'Remaining (may be negative)',
+
+    '费率按刷卡日期自动取该卡当期费率，允许超刷。' => 'The rate is taken automatically from the card\'s current rate on the swipe date; over-swipe is allowed.',
+
+    '暂无刷卡记录' => 'No swipe records yet',
+
     '卡费率' => 'Fuel Card Rates',
 
     '应付持卡人' => 'Owner Payout',
 
     '费率' => 'Rate',
+
+    // Rates page
+
+    '当期费率' => 'Current Rate',
+
+    '生效周' => 'Effective Week',
+
+    '费率历史' => 'Rate History',
+
+    '所在周（周四 ~ 周三）' => 'Week (Thu ~ Wed)',
+
+    '上一周' => 'Previous Week',
+
+    '下一周' => 'Next Week',
+
+    '本周' => 'This Week',
+
+    '本周费率（按客户）' => 'This Week Rates (by Customer)',
+
+    '保存本周费率' => 'Save This Week Rates',
+
+    '已填' => 'Filled',
+
+    '未填' => 'Not filled',
+
+    '暂无客户' => 'No customers yet',
+
+    '暂无费率记录' => 'No rate records yet',
+
+    '{count} 个客户未填' => '{count} customer(s) not filled',
+
+    '请求方式无效。' => 'Invalid request method.',
+
+    '周区间无效。' => 'Invalid week range.',
+
+    '已保存 {count} 个客户的费率。' => 'Rates saved for {count} customer(s).',
+
+    '每周四填写下一周费率；刷卡时按刷卡当天日期自动取该客户当期费率，并记入刷卡记录。可超刷，不设上限。' => 'Fill in the next week\'s rates every Thursday. On swipe, the customer\'s current rate for the swipe date is applied automatically and recorded. Over-swipe is allowed with no cap.',
+
+    '费率为费率表未维护时的默认值；正常按「卡费率」页每周填报为准。' => 'Used as the fallback only when the rate table is not maintained; normally the weekly entries on the Fuel Card Rates page apply.',
 
     '按费率汇总' => 'By Owner Rate',
 
@@ -671,6 +727,10 @@ return [
     '油票客户' => 'Petrol Chit Customer',
 
     '客户名称' => 'Customer Name',
+
+    '客户' => 'Customer',
+
+    '汇总' => 'Summary',
 
     '预存金额' => 'Deposit Amount',
 
