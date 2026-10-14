@@ -270,6 +270,8 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     <th class="text-right"><?= Yii::t('app', '已刷升数') ?></th>
 
+                    <th class="text-right"><?= Yii::t('app', '剩余') ?></th>
+
                 </tr>
 
                 </thead>
@@ -278,7 +280,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <?php if (empty($status['types'])): ?>
 
-                <tr><td colspan="4" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
+                <tr><td colspan="5" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
 
                 <?php else: ?>
 
@@ -293,6 +295,8 @@ $this->params['breadcrumbs'][] = $this->title;
                     <td class="text-right"><?= number_format($type['quota'], 3) ?></td>
 
                     <td class="text-right"><?= number_format($type['used'], 3) ?></td>
+
+                    <td class="text-right"><?= number_format($type['remaining'], 3) ?></td>
 
                 </tr>
 

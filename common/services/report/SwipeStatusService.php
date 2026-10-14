@@ -93,7 +93,7 @@ class SwipeStatusService
     /**
      * 按卡类型汇总当月已刷升数。
      *
-     * @return array<int, array{name:string,cards:int,quota:float,used:float}>
+     * @return array<int, array{name:string,cards:int,quota:float,used:float,remaining:float}>
      */
     private function typeRows(string $from, string $to): array
     {
@@ -120,11 +120,14 @@ class SwipeStatusService
                     ->sum('liters');
             }
 
+            $quota = round((float) array_sum(ArrayHelper::getColumn($cards, 'monthly_quota')), 3);
+
             $rows[] = [
                 'name' => $name,
                 'cards' => count($cardIds),
-                'quota' => round((float) array_sum(ArrayHelper::getColumn($cards, 'monthly_quota')), 3),
+                'quota' => $quota,
                 'used' => round($used, 3),
+                'remaining' => round($quota - $used, 3),
             ];
         }
 
