@@ -9,6 +9,7 @@ use common\models\GslChitCustomer;
 use common\models\GslChitTopup;
 use common\models\GslFill;
 use common\services\report\ChitSummaryService;
+use common\services\report\ExcelReportService;
 use Yii;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -85,10 +86,43 @@ class DefaultController extends GslController
 
         return $this->render('summary', [
             'month' => $month,
+            'dateFrom' => date('Y-m-01', strtotime($month . '-01')),
+            'dateTo' => date('Y-m-t', strtotime($month . '-01')),
             'daily' => $service->getDailyByCustomer($month),
             'monthly' => $service->getMonthlyByCustomer($month),
             'balances' => $service->getBalances(),
         ]);
+    }
+
+    public function actionExport()
+    {
+        $this->checkPermission('chits.view');
+
+        $from = (string) Yii::$app->request->get('date_from', '');
+        $to = (string) Yii::$app->request->get('date_to', '');
+
+        if (!$this->isValidDate($from) || !$this->isValidDate($to) || $from > $to) {
+            Yii::$app->session->setFlash('error', Yii::t('app', '日期范围无效。'));
+            return $this->redirect(['summary']);
+        }
+
+        $service = new ExcelReportService();
+
+        return Yii::$app->response->sendContentAsFile(
+            $service->buildChitSummary($from, $to),
+            $service->chitSummaryFilename($from, $to),
+            [
+                'mimeType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'inline' => false,
+            ]
+        );
+    }
+
+    private function isValidDate(string $date): bool
+    {
+        $dt = \DateTime::createFromFormat('Y-m-d', $date);
+
+        return $dt !== false && $dt->format('Y-m-d') === $date;
     }
 
     public function actionCreate()

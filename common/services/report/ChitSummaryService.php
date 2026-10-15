@@ -25,6 +25,23 @@ class ChitSummaryService
         $from = date('Y-m-01', strtotime($month . '-01'));
         $to = date('Y-m-t', strtotime($month . '-01'));
 
+        return $this->getDailyByCustomerRange($from, $to);
+    }
+
+    /**
+     * 按客户×日期交叉表：区间内每日消费金额。
+     *
+     * @return array{
+     *   customers: array<int,array{id:int,name:string}>,
+     *   dates: string[],
+     *   matrix: array<int,array<string,float>>,
+     *   rowTotals: array<int,float>,
+     *   colTotals: array<string,float>,
+     *   grandTotal: float
+     * }
+     */
+    public function getDailyByCustomerRange(string $from, string $to): array
+    {
         $rows = GslChit::find()
             ->select(['customer_id', 'work_date', 'amount' => 'ROUND(SUM([[amount]]), 2)'])
             ->where(['not', ['customer_id' => null]])
@@ -72,6 +89,20 @@ class ChitSummaryService
             'colTotals' => $colTotals,
             'grandTotal' => $grandTotal,
         ];
+    }
+
+    /**
+     * 日期区间内的油票记录（含柜台、客户关联），按日期升序。
+     *
+     * @return GslChit[]
+     */
+    public function getRecordsForRange(string $from, string $to): array
+    {
+        return GslChit::find()
+            ->with(['counter', 'customer'])
+            ->where(['between', 'work_date', $from, $to])
+            ->orderBy(['work_date' => SORT_ASC, 'id' => SORT_ASC])
+            ->all();
     }
 
     /**
@@ -136,11 +167,39 @@ class ChitSummaryService
      */
     public function getBalances(): array
     {
+        return $this->balances(null, null);
+    }
+
+    /**
+     * 按客户余额，其中“已用金额”只统计区间内的消费（预存仍为累计）。
+     *
+     * @return array{
+     *   rows: array<int,array{id:int,name:string,deposit:float,used:float,balance:float}>,
+     *   totals: array{deposit:float,used:float,balance:float}
+     * }
+     */
+    public function getBalancesForRange(string $from, string $to): array
+    {
+        return $this->balances($from, $to);
+    }
+
+    /**
+     * @return array{
+     *   rows: array<int,array{id:int,name:string,deposit:float,used:float,balance:float}>,
+     *   totals: array{deposit:float,used:float,balance:float}
+     * }
+     */
+    private function balances(?string $from, ?string $to): array
+    {
         $depositMap = GslChitTopup::totalsByCustomer();
 
-        $usedRows = GslChit::find()
+        $usedQuery = GslChit::find()
             ->select(['customer_id', 'used' => 'ROUND(SUM([[amount]]), 2)'])
-            ->where(['not', ['customer_id' => null]])
+            ->where(['not', ['customer_id' => null]]);
+        if ($from !== null && $to !== null) {
+            $usedQuery->andWhere(['between', 'work_date', $from, $to]);
+        }
+        $usedRows = $usedQuery
             ->groupBy('customer_id')
             ->asArray()
             ->all();

@@ -2,6 +2,8 @@
 
 /** @var yii\web\View $this */
 /** @var string $month */
+/** @var string $dateFrom */
+/** @var string $dateTo */
 /** @var array $daily */
 /** @var array $monthly */
 /** @var array $balances */
@@ -27,6 +29,23 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="col-auto">
                 <?= Html::submitButton(Yii::t('app', '查询'), ['class' => 'btn btn-primary']) ?>
+            </div>
+        </div>
+        <?php ActiveForm::end(); ?>
+
+        <hr class="mt-3 mb-3">
+        <?php $exportForm = ActiveForm::begin(['method' => 'get', 'action' => ['export']]); ?>
+        <div class="form-row align-items-end">
+            <div class="col-auto">
+                <label class="control-label"><?= Yii::t('app', '开始日期') ?></label>
+                <input type="date" name="date_from" class="form-control" value="<?= Html::encode($dateFrom) ?>">
+            </div>
+            <div class="col-auto">
+                <label class="control-label"><?= Yii::t('app', '结束日期') ?></label>
+                <input type="date" name="date_to" class="form-control" value="<?= Html::encode($dateTo) ?>">
+            </div>
+            <div class="col-auto">
+                <?= Html::submitButton(Yii::t('app', '下载 Excel'), ['class' => 'btn btn-outline-primary']) ?>
             </div>
         </div>
         <?php ActiveForm::end(); ?>

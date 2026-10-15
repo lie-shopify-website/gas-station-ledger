@@ -2,6 +2,7 @@
 
 namespace common\services\report;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -41,6 +42,24 @@ class ExcelReportService
             return $from === $to
                 ? Yii::t('app', '账本精简汇总') . '-' . $from . '.xlsx'
                 : Yii::t('app', '账本精简汇总') . '-' . $from . '_' . $to . '.xlsx';
+        });
+    }
+
+    public function buildChitSummary(string $from, string $to): string
+    {
+        return $this->withEnglish(function () use ($from, $to) {
+            return $this->buildChitSummaryInCurrentLanguage($from, $to);
+        });
+    }
+
+    public function chitSummaryFilename(string $from, string $to): string
+    {
+        return $this->withEnglish(static function () use ($from, $to) {
+            $base = Yii::t('app', '油票汇总');
+
+            return $from === $to
+                ? $base . '-' . $from . '.xlsx'
+                : $base . '-' . $from . '_' . $to . '.xlsx';
         });
     }
 
@@ -162,6 +181,210 @@ class ExcelReportService
         $writer->save('php://output');
 
         return (string) ob_get_clean();
+    }
+
+    private function buildChitSummaryInCurrentLanguage(string $from, string $to): string
+    {
+        $chits = new ChitSummaryService();
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getProperties()
+            ->setCreator('Gas Station Ledger')
+            ->setTitle(Yii::t('app', '油票汇总'));
+
+        $this->writeChitBalancesSheet(
+            $spreadsheet->getActiveSheet(),
+            $chits->getBalancesForRange($from, $to),
+            $from,
+            $to
+        );
+
+        $recordsSheet = $spreadsheet->createSheet();
+        $this->writeChitRecordsSheet($recordsSheet, $chits->getRecordsForRange($from, $to));
+
+        $dailySheet = $spreadsheet->createSheet();
+        $this->writeChitDailySheet($dailySheet, $chits->getDailyByCustomerRange($from, $to), $from, $to);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+
+        return (string) ob_get_clean();
+    }
+
+    /**
+     * @param array{rows:array<int,array{name:string,deposit:float,used:float,balance:float}>,totals:array{deposit:float,used:float,balance:float}} $balances
+     */
+    private function writeChitBalancesSheet(Worksheet $sheet, array $balances, string $from, string $to): void
+    {
+        $sheet->setTitle(Yii::t('app', '客户余额'));
+        $range = $from === $to ? $from : $from . ' ~ ' . $to;
+
+        $sheet->setCellValue('A1', Yii::t('app', '客户余额'));
+        $sheet->setCellValue('B1', $range);
+        $this->styleTitle($sheet, 'A1:B1');
+
+        $sheet->fromArray([
+            Yii::t('app', '客户'),
+            Yii::t('app', '预存金额'),
+            Yii::t('app', '已用金额'),
+            Yii::t('app', '剩余金额'),
+        ], null, 'A3');
+        $this->styleHeader($sheet, 'A3:D3');
+
+        $rowNum = 4;
+        foreach ($balances['rows'] as $row) {
+            $sheet->fromArray([
+                $row['name'],
+                $row['deposit'],
+                $row['used'],
+                $row['balance'],
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        $sheet->fromArray([
+            Yii::t('app', '合计'),
+            $balances['totals']['deposit'],
+            $balances['totals']['used'],
+            $balances['totals']['balance'],
+        ], '', 'A' . $rowNum);
+        $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+        $sheet->getStyle('A' . $rowNum . ':D' . $rowNum)->getFont()->setBold(true);
+        $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $this->applyBorder($sheet, 'A3:D' . $rowNum);
+
+        $sheet->freezePane('A4');
+        foreach (range('A', 'D') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * @param \common\models\GslChit[] $records
+     */
+    private function writeChitRecordsSheet(Worksheet $sheet, array $records): void
+    {
+        $sheet->setTitle(Yii::t('app', '使用记录'));
+        $sheet->fromArray([
+            Yii::t('app', '序号'),
+            Yii::t('app', '日期'),
+            Yii::t('app', '柜台'),
+            Yii::t('app', '客户'),
+            Yii::t('app', '油类型'),
+            Yii::t('app', '柜员号'),
+            Yii::t('app', '金额'),
+            Yii::t('app', '票根号'),
+            Yii::t('app', '收据号'),
+        ], null, 'A1');
+        $this->styleHeader($sheet, 'A1:I1');
+
+        $rowNum = 2;
+        $total = 0.0;
+        $index = 1;
+        foreach ($records as $record) {
+            $amount = (float) $record->amount;
+            $sheet->fromArray([
+                $index,
+                $record->work_date,
+                $record->counter ? $record->counter->getLabel() : '',
+                $record->customer ? $record->customer->name : '',
+                $record->oil_type,
+                $record->operator_no,
+                $amount,
+                $record->chit_stub_no,
+                $record->receipt_no,
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $total += $amount;
+            $index++;
+            $rowNum++;
+        }
+
+        if ($records) {
+            $sheet->setCellValue('A' . $rowNum, Yii::t('app', '合计'));
+            $sheet->setCellValue('G' . $rowNum, round($total, 2));
+            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':I' . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A1:I' . $rowNum);
+        } else {
+            $sheet->setCellValue('A2', Yii::t('app', '暂无数据'));
+        }
+
+        $sheet->freezePane('A2');
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * @param array{
+     *   customers: array<int,array{id:int,name:string}>,
+     *   dates: string[],
+     *   matrix: array<int,array<string,float>>,
+     *   rowTotals: array<int,float>,
+     *   colTotals: array<string,float>,
+     *   grandTotal: float
+     * } $daily
+     */
+    private function writeChitDailySheet(Worksheet $sheet, array $daily, string $from, string $to): void
+    {
+        $sheet->setTitle(Yii::t('app', '每日消费明细'));
+        $range = $from === $to ? $from : $from . ' ~ ' . $to;
+
+        $sheet->setCellValue('A1', Yii::t('app', '每日消费明细'));
+        $sheet->setCellValue('B1', $range);
+        $this->styleTitle($sheet, 'A1:B1');
+
+        $header = [Yii::t('app', '客户')];
+        foreach ($daily['dates'] as $date) {
+            $header[] = substr($date, 5);
+        }
+        $header[] = Yii::t('app', '合计');
+        $lastCol = Coordinate::stringFromColumnIndex(count($header));
+
+        $sheet->fromArray($header, null, 'A3');
+        $this->styleHeader($sheet, 'A3:' . $lastCol . '3');
+
+        $rowNum = 4;
+        foreach ($daily['customers'] as $cust) {
+            $row = [$cust['name']];
+            foreach ($daily['dates'] as $date) {
+                $value = (float) ($daily['matrix'][$cust['id']][$date] ?? 0.0);
+                $row[] = $value > 0 ? $value : null;
+            }
+            $row[] = (float) ($daily['rowTotals'][$cust['id']] ?? 0.0);
+            $sheet->fromArray($row, '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum . ':' . $lastCol . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('B' . $rowNum . ':' . $lastCol . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        if ($daily['customers']) {
+            $totalRow = [Yii::t('app', '合计')];
+            foreach ($daily['dates'] as $date) {
+                $totalRow[] = (float) ($daily['colTotals'][$date] ?? 0.0);
+            }
+            $totalRow[] = (float) $daily['grandTotal'];
+            $sheet->fromArray($totalRow, '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum . ':' . $lastCol . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':' . $lastCol . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('B' . $rowNum . ':' . $lastCol . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A3:' . $lastCol . $rowNum);
+        } else {
+            $sheet->setCellValue('A4', Yii::t('app', '暂无数据'));
+        }
+
+        $sheet->freezePane('B4');
+        foreach (range('A', $lastCol) as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
     }
 
     /**
