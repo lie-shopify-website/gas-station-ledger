@@ -252,6 +252,50 @@ $this->params['breadcrumbs'][] = $this->title;
 
 
 
+        <h5 class="mt-3"><?= Yii::t('app', '按卡主汇总') ?></h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-sm mb-0">
+                <thead>
+                <tr>
+                    <th><?= Yii::t('app', '卡所属人') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '卡数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '已刷升数') ?></th>
+                    <th class="text-right"><?= Yii::t('app', '应付持卡人') ?></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php if (empty($status['owners'])): ?>
+                <tr><td colspan="4" class="text-center text-muted"><?= Yii::t('app', '暂无刷卡记录') ?></td></tr>
+                <?php else: ?>
+                <?php $ownerTotals = ['cards' => 0, 'liters' => 0.0, 'payout' => 0.0]; ?>
+                <?php foreach ($status['owners'] as $owner): ?>
+                <tr>
+                    <td><?= Html::encode($owner['owner_name'] !== '' ? $owner['owner_name'] : '—') ?></td>
+                    <td class="text-right"><?= (int) $owner['cards'] ?></td>
+                    <td class="text-right"><?= number_format($owner['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($owner['payout'], 2) ?></td>
+                </tr>
+                <?php
+                $ownerTotals['cards'] += $owner['cards'];
+                $ownerTotals['liters'] += $owner['liters'];
+                $ownerTotals['payout'] += $owner['payout'];
+                ?>
+                <?php endforeach; ?>
+                <?php endif; ?>
+                </tbody>
+                <?php if (!empty($status['owners'])): ?>
+                <tfoot>
+                <tr class="font-weight-bold">
+                    <td><?= Yii::t('app', '合计') ?></td>
+                    <td class="text-right"><?= (int) $ownerTotals['cards'] ?></td>
+                    <td class="text-right"><?= number_format($ownerTotals['liters'], 3) ?></td>
+                    <td class="text-right"><?= number_format($ownerTotals['payout'], 2) ?></td>
+                </tr>
+                </tfoot>
+                <?php endif; ?>
+            </table>
+        </div>
+
         <h5 class="mt-3"><?= Yii::t('app', '按卡类型汇总') ?></h5>
 
         <div class="table-responsive">
@@ -270,8 +314,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
                     <th class="text-right"><?= Yii::t('app', '已刷升数') ?></th>
 
-                    <th class="text-right"><?= Yii::t('app', '剩余') ?></th>
-
                 </tr>
 
                 </thead>
@@ -280,7 +322,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 <?php if (empty($status['types'])): ?>
 
-                <tr><td colspan="5" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
+                <tr><td colspan="4" class="text-center text-muted"><?= Yii::t('app', '暂无油卡') ?></td></tr>
 
                 <?php else: ?>
 
@@ -295,8 +337,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     <td class="text-right"><?= number_format($type['quota'], 3) ?></td>
 
                     <td class="text-right"><?= number_format($type['used'], 3) ?></td>
-
-                    <td class="text-right"><?= number_format($type['remaining'], 3) ?></td>
 
                 </tr>
 

@@ -46,6 +46,7 @@ class SwipeStatusService
 
         $typeRows = $this->typeRows($from, $to);
         $rateRows = $this->rateRows($from, $to);
+        $ownerRows = $this->ownerRows($from, $to);
 
         return [
             'month' => $month,
@@ -56,7 +57,42 @@ class SwipeStatusService
             'cards' => $cardRows,
             'types' => $typeRows,
             'rates' => $rateRows,
+            'owners' => $ownerRows,
         ];
+    }
+
+    /**
+     * 按卡所属人（gsl_card.owner_name）汇总当月已刷升数与应付持卡人。
+     *
+     * @return array<int, array{owner_name:string,cards:int,liters:float,payout:float}>
+     */
+    private function ownerRows(string $from, string $to): array
+    {
+        $rows = GslSwipe::find()
+            ->select([
+                'owner_name' => 'c.owner_name',
+                'cards' => 'COUNT(DISTINCT {{%gsl_swipe}}.card_id)',
+                'liters' => 'ROUND(SUM({{%gsl_swipe}}.liters), 3)',
+                'payout' => 'ROUND(SUM({{%gsl_swipe}}.owner_payout), 2)',
+            ])
+            ->innerJoin(['c' => GslCard::tableName()], 'c.id = {{%gsl_swipe}}.card_id')
+            ->where(['between', '{{%gsl_swipe}}.work_date', $from, $to])
+            ->groupBy(['c.owner_name'])
+            ->orderBy(['payout' => SORT_DESC, 'owner_name' => SORT_ASC])
+            ->asArray()
+            ->all();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[] = [
+                'owner_name' => (string) ($row['owner_name'] ?? ''),
+                'cards' => (int) $row['cards'],
+                'liters' => round((float) $row['liters'], 3),
+                'payout' => round((float) $row['payout'], 2),
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -93,7 +129,7 @@ class SwipeStatusService
     /**
      * 按卡类型汇总当月已刷升数。
      *
-     * @return array<int, array{name:string,cards:int,quota:float,used:float,remaining:float}>
+     * @return array<int, array{name:string,cards:int,quota:float,used:float}>
      */
     private function typeRows(string $from, string $to): array
     {
@@ -120,14 +156,11 @@ class SwipeStatusService
                     ->sum('liters');
             }
 
-            $quota = round((float) array_sum(ArrayHelper::getColumn($cards, 'monthly_quota')), 3);
-
             $rows[] = [
                 'name' => $name,
                 'cards' => count($cardIds),
-                'quota' => $quota,
+                'quota' => round((float) array_sum(ArrayHelper::getColumn($cards, 'monthly_quota')), 3),
                 'used' => round($used, 3),
-                'remaining' => round($quota - $used, 3),
             ];
         }
 

@@ -374,6 +374,8 @@ return [
 
     '按费率汇总' => 'By Owner Rate',
 
+    '按卡主汇总' => 'By Card Owner',
+
     '单次刷卡上限' => 'Max per Swipe',
 
     '单卡每日上限' => 'Max per Card per Day',
