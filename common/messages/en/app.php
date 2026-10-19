@@ -237,6 +237,10 @@ return [
 
     // Swipes
 
+    '刷卡汇总' => 'Swipe Summary',
+
+    '卡明细' => 'Card Details',
+
     '刷卡汇总 — {month}' => 'Swipe Summary — {month}',
 
     '已加油' => 'Filled',

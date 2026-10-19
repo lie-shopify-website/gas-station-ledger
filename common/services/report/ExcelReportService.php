@@ -63,6 +63,23 @@ class ExcelReportService
         });
     }
 
+    /**
+     * 月度刷卡汇总工作簿（6 个 sheet，与刷卡状态页的表格一一对应）。
+     */
+    public function buildSwipeSummary(string $month): string
+    {
+        return $this->withEnglish(function () use ($month) {
+            return $this->buildSwipeSummaryInCurrentLanguage($month);
+        });
+    }
+
+    public function swipeSummaryFilename(string $month): string
+    {
+        return $this->withEnglish(static function () use ($month) {
+            return Yii::t('app', '刷卡汇总') . '-' . $month . '.xlsx';
+        });
+    }
+
     private function withEnglish(callable $callback)
     {
         $previous = Yii::$app->language;
@@ -212,6 +229,317 @@ class ExcelReportService
         $writer->save('php://output');
 
         return (string) ob_get_clean();
+    }
+
+    private function buildSwipeSummaryInCurrentLanguage(string $month): string
+    {
+        $swipeService = new SwipeStatusService();
+        $status = $swipeService->getStatus($month);
+        $swipes = $swipeService->getSwipes($month);
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getProperties()
+            ->setCreator('Gas Station Ledger')
+            ->setTitle(Yii::t('app', '刷卡汇总'));
+
+        $this->writeSwipeKpiSheet($spreadsheet->getActiveSheet(), $month, $status);
+        $this->writeSwipeOwnerSheet($spreadsheet->createSheet(), $status['owners']);
+        $this->writeSwipeTypeSheet($spreadsheet->createSheet(), $status['types']);
+        $this->writeSwipeRateSheet($spreadsheet->createSheet(), $status['rates']);
+        $this->writeSwipeCardSheet($spreadsheet->createSheet(), $status['cards']);
+        $this->writeSwipeDetailSheet($spreadsheet->createSheet(), $swipes);
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $writer = new Xlsx($spreadsheet);
+        ob_start();
+        $writer->save('php://output');
+
+        return (string) ob_get_clean();
+    }
+
+    /**
+     * 汇总 sheet：与页面顶部四个信息卡一致。
+     *
+     * @param array{fill_liters:float,swiped_liters:float,left_liters:float,owner_payout:float} $status
+     */
+    private function writeSwipeKpiSheet(Worksheet $sheet, string $month, array $status): void
+    {
+        $sheet->setTitle(Yii::t('app', '汇总'));
+        $sheet->setCellValue('A1', Yii::t('app', '刷卡汇总 — {month}', ['month' => $month]));
+        $this->styleTitle($sheet, 'A1:B1');
+
+        $rows = [
+            [Yii::t('app', '加油升数'), (float) $status['fill_liters'], 3],
+            [Yii::t('app', '已刷升数'), (float) $status['swiped_liters'], 3],
+            [Yii::t('app', '待刷升数'), (float) $status['left_liters'], 3],
+            [Yii::t('app', '应付持卡人'), (float) $status['owner_payout'], 2],
+        ];
+
+        $rowNum = 3;
+        foreach ($rows as [$label, $value, $decimals]) {
+            $sheet->setCellValue('A' . $rowNum, $label);
+            $sheet->setCellValue('B' . $rowNum, round($value, $decimals));
+            $sheet->getStyle('B' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat($decimals));
+            $sheet->getStyle('B' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        $this->applyBorder($sheet, 'A3:B' . ($rowNum - 1));
+        $sheet->getColumnDimension('A')->setAutoSize(true);
+        $sheet->getColumnDimension('B')->setAutoSize(true);
+    }
+
+    /**
+     * 按卡主汇总 sheet。
+     *
+     * @param array<int,array{owner_name:string,cards:int,liters:float,payout:float}> $owners
+     */
+    private function writeSwipeOwnerSheet(Worksheet $sheet, array $owners): void
+    {
+        $sheet->setTitle(Yii::t('app', '按卡主汇总'));
+        $sheet->fromArray([
+            Yii::t('app', '卡所属人'),
+            Yii::t('app', '卡数'),
+            Yii::t('app', '已刷升数'),
+            Yii::t('app', '应付持卡人'),
+        ], null, 'A1');
+        $this->styleHeader($sheet, 'A1:D1');
+
+        $rowNum = 2;
+        $totalCards = 0;
+        $totalLiters = 0.0;
+        $totalPayout = 0.0;
+        foreach ($owners as $owner) {
+            $sheet->fromArray([
+                $owner['owner_name'] !== '' ? $owner['owner_name'] : '—',
+                (int) $owner['cards'],
+                (float) $owner['liters'],
+                (float) $owner['payout'],
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(0));
+            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $totalCards += (int) $owner['cards'];
+            $totalLiters += (float) $owner['liters'];
+            $totalPayout += (float) $owner['payout'];
+            $rowNum++;
+        }
+
+        if ($owners) {
+            $sheet->fromArray([
+                Yii::t('app', '合计'),
+                $totalCards,
+                round($totalLiters, 3),
+                round($totalPayout, 2),
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(0));
+            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':D' . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A1:D' . $rowNum);
+        } else {
+            $sheet->setCellValue('A2', Yii::t('app', '暂无数据'));
+        }
+
+        $sheet->freezePane('A2');
+        foreach (range('A', 'D') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * 按卡类型汇总 sheet。
+     *
+     * @param array<int,array{name:string,cards:int,quota:float,used:float}> $types
+     */
+    private function writeSwipeTypeSheet(Worksheet $sheet, array $types): void
+    {
+        $sheet->setTitle(Yii::t('app', '按卡类型汇总'));
+        $sheet->fromArray([
+            Yii::t('app', '卡类型'),
+            Yii::t('app', '卡数'),
+            Yii::t('app', '可刷升数'),
+            Yii::t('app', '已刷升数'),
+        ], null, 'A1');
+        $this->styleHeader($sheet, 'A1:D1');
+
+        $rowNum = 2;
+        foreach ($types as $type) {
+            $sheet->fromArray([
+                $type['name'],
+                (int) $type['cards'],
+                (float) $type['quota'],
+                (float) $type['used'],
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(0));
+            $sheet->getStyle('C' . $rowNum . ':D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        if ($types) {
+            $this->applyBorder($sheet, 'A1:D' . ($rowNum - 1));
+        } else {
+            $sheet->setCellValue('A2', Yii::t('app', '暂无数据'));
+        }
+
+        $sheet->freezePane('A2');
+        foreach (range('A', 'D') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * 按费率汇总 sheet。
+     *
+     * @param array<int,array{rate:float,liters:float,payout:float}> $rates
+     */
+    private function writeSwipeRateSheet(Worksheet $sheet, array $rates): void
+    {
+        $sheet->setTitle(Yii::t('app', '按费率汇总'));
+        $sheet->fromArray([
+            Yii::t('app', '费率'),
+            Yii::t('app', '已刷升数'),
+            Yii::t('app', '应付持卡人'),
+        ], null, 'A1');
+        $this->styleHeader($sheet, 'A1:C1');
+
+        $rowNum = 2;
+        foreach ($rates as $rate) {
+            $sheet->fromArray([
+                (float) $rate['rate'],
+                (float) $rate['liters'],
+                (float) $rate['payout'],
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('A' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('B' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('C' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':C' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        if ($rates) {
+            $this->applyBorder($sheet, 'A1:C' . ($rowNum - 1));
+        } else {
+            $sheet->setCellValue('A2', Yii::t('app', '暂无数据'));
+        }
+
+        $sheet->freezePane('A2');
+        foreach (range('A', 'C') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * 卡明细 sheet（当月每张启用卡的额度与使用情况）。
+     *
+     * @param array<int,array{card_no:string,quota:float,used:float,remaining:float}> $cards
+     */
+    private function writeSwipeCardSheet(Worksheet $sheet, array $cards): void
+    {
+        $sheet->setTitle(Yii::t('app', '卡明细'));
+        $sheet->fromArray([
+            Yii::t('app', '油卡'),
+            Yii::t('app', '可刷升数'),
+            Yii::t('app', '已用'),
+            Yii::t('app', '剩余'),
+        ], null, 'A1');
+        $this->styleHeader($sheet, 'A1:D1');
+
+        $rowNum = 2;
+        foreach ($cards as $card) {
+            $sheet->fromArray([
+                $card['card_no'],
+                (float) $card['quota'],
+                (float) $card['used'],
+                (float) $card['remaining'],
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('B' . $rowNum . ':D' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $rowNum++;
+        }
+
+        if ($cards) {
+            $this->applyBorder($sheet, 'A1:D' . ($rowNum - 1));
+        } else {
+            $sheet->setCellValue('A2', Yii::t('app', '暂无油卡'));
+        }
+
+        $sheet->freezePane('A2');
+        foreach (range('A', 'D') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
+    /**
+     * 刷卡明细 sheet（列与刷卡记录页一致，含合计行）。
+     *
+     * @param \common\models\GslSwipe[] $swipes
+     */
+    private function writeSwipeDetailSheet(Worksheet $sheet, array $swipes): void
+    {
+        $sheet->setTitle(Yii::t('app', '刷卡明细'));
+        $sheet->fromArray([
+            Yii::t('app', '序号'),
+            Yii::t('app', '日期'),
+            Yii::t('app', '油卡'),
+            Yii::t('app', '卡类型'),
+            Yii::t('app', '升数'),
+            Yii::t('app', '费率'),
+            Yii::t('app', '应付持卡人'),
+            Yii::t('app', '批准号'),
+            Yii::t('app', '备注'),
+        ], null, 'A1');
+        $this->styleHeader($sheet, 'A1:I1');
+
+        $rowNum = 2;
+        $index = 1;
+        $totalLiters = 0.0;
+        $totalPayout = 0.0;
+        foreach ($swipes as $swipe) {
+            $liters = (float) $swipe->liters;
+            $payout = (float) $swipe->owner_payout;
+            $sheet->fromArray([
+                $index,
+                $swipe->work_date,
+                $swipe->card ? $swipe->card->getDisplayNo() : '',
+                $swipe->card && $swipe->card->cardType ? $swipe->card->cardType->name : '',
+                $liters,
+                (float) $swipe->owner_rate,
+                $payout,
+                $swipe->swipe_receipt,
+                $swipe->note,
+            ], '', 'A' . $rowNum);
+            $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('F' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('E' . $rowNum . ':G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $totalLiters += $liters;
+            $totalPayout += $payout;
+            $index++;
+            $rowNum++;
+        }
+
+        if ($swipes) {
+            $sheet->setCellValue('A' . $rowNum, Yii::t('app', '合计'));
+            $sheet->setCellValue('E' . $rowNum, round($totalLiters, 3));
+            $sheet->setCellValue('G' . $rowNum, round($totalPayout, 2));
+            $sheet->getStyle('E' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(3));
+            $sheet->getStyle('G' . $rowNum)->getNumberFormat()->setFormatCode($this->numberFormat(2));
+            $sheet->getStyle('A' . $rowNum . ':I' . $rowNum)->getFont()->setBold(true);
+            $sheet->getStyle('E' . $rowNum . ':G' . $rowNum)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            $this->applyBorder($sheet, 'A1:I' . $rowNum);
+        } else {
+            $sheet->setCellValue('A2', Yii::t('app', '暂无刷卡记录'));
+        }
+
+        $sheet->freezePane('A2');
+        foreach (range('A', 'I') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
     }
 
     /**

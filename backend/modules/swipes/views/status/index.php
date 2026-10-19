@@ -170,6 +170,30 @@ $this->params['breadcrumbs'][] = $this->title;
 
         <?php ActiveForm::end(); ?>
 
+        <hr class="mt-3 mb-3">
+
+        <?php $exportForm = ActiveForm::begin(['method' => 'get', 'action' => ['export']]); ?>
+
+        <div class="form-row align-items-end">
+
+            <div class="col-auto">
+
+                <label class="control-label"><?= Yii::t('app', '月份') ?></label>
+
+                <input type="month" name="month" class="form-control" value="<?= Html::encode($month) ?>">
+
+            </div>
+
+            <div class="col-auto">
+
+                <?= Html::submitButton(Yii::t('app', '下载 Excel'), ['class' => 'btn btn-outline-primary']) ?>
+
+            </div>
+
+        </div>
+
+        <?php ActiveForm::end(); ?>
+
 
 
         <div class="row gsl-info-boxes">

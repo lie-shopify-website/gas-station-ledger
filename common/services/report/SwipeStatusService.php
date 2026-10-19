@@ -174,7 +174,7 @@ class SwipeStatusService
         $to = date('Y-m-t', strtotime($from));
 
         return GslSwipe::find()
-            ->with(['company', 'card'])
+            ->with(['company', 'card.cardType'])
             ->where(['between', 'work_date', $from, $to])
             ->orderBy(['work_date' => SORT_ASC, 'id' => SORT_ASC])
             ->all();
