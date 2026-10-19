@@ -12,8 +12,8 @@ class GslChit extends ActiveRecord
      * 油类型取值（忽略价格，仅取名称）
      */
     public const OIL_TYPES = [
-        'RON97',
         'RON95',
+        'RON97',
         'E5 B10 B12 B15 Diesel',
         'E5 B7 Diesel',
     ];
